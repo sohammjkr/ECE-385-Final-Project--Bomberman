@@ -25,6 +25,8 @@ FGD_R/G/B = Foreground color, flipped with background when Inv bit is set
 `define NUM_REGS 601 //80*30 characters / 4 characters per register
 `define CTRL_REG 600 //index of control register
 
+//test
+
 module vga_text_avl_interface (
 	// Avalon Clock Input, note this clock is also used for VGA, so this must be 50Mhz
 	// We can put a clock divider here in the future to make this IP more generalizable
