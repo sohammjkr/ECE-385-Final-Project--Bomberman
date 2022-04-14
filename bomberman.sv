@@ -57,7 +57,7 @@ module bomberman (
 	logic [3:0] hex_num_4, hex_num_3, hex_num_1, hex_num_0; //4 bit input hex digits
 	logic [1:0] signs;
 	logic [1:0] hundreds;
-	logic [9:0] drawxsig, drawysig, ballxsig, ballysig, ballsizesig;
+	logic [9:0] drawxsig, drawysig;
 	logic [7:0] keycode;
 
 //=======================================================
@@ -154,5 +154,28 @@ module bomberman (
 		.vga_port_vs (VGA_VS)
 		
 	 );
+	 
+//=======================================================
+//  Logic Variables
+//=======================================================
+	 
+logic Reset_h, Clk, bomb_drop;	
+
+logic [9:0] userxsig, userysig, usersizesig;
+
+
+user create_user(.Reset(Reset_h), 
+					  .frame_clk(VGA_VS),
+					  .collide(),
+					  .keycode(keycode),
+					  .damage(),
+					  .heart(), 
+					  .userX(userxsig),
+					  .userY(userysig),
+					  .userS(usersizesig)
+);
+
+bomb create_bomb(					  
+					  
 	 
 endmodule
