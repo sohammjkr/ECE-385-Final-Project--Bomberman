@@ -4,8 +4,8 @@
 
 module user(
 
-input logic Reset, frame_clk, collide
-input logic [7:0] keycode, 
+input logic Reset, frame_clk, collide,
+input logic [7:0] keycode,
 
 output logic bomb_drop, damage,
 output logic [2:0] heart,
@@ -44,8 +44,8 @@ always_ff @(posedge Reset or posedge frame_clk)
         begin 
             User_Y_Motion <= 10'd0; //User X Motion;
 				User_X_Motion <= 10'd0; //User Y Motion;
-				User_Y_Pos <= User_X_Min;
-				User_X_Pos <= User_Y_Min;
+				User_Y_Pos <= User_X_Min + 20;
+				User_X_Pos <= User_Y_Min + 20;
 				bomb_drop = 1'b0;
 		  end
 		  
@@ -92,8 +92,10 @@ always_ff @(posedge Reset or posedge frame_clk)
 							 
 					8'h19 : begin
 								bomb_drop <= 1'b1;
+							  end
 					default: ;
 			   endcase
+				end
 				
 //				if(keycode == 8'h19)
 //					begin

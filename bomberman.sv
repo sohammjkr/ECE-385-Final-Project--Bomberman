@@ -1,7 +1,15 @@
+//-------------------------------------------------------------------------
+//                                                                       --
+//                                                                       --
+//      For use with ECE 385 Lab 62                                       --
+//      UIUC ECE Department                                              --
+//-------------------------------------------------------------------------
+
+
 module bomberman (
 
       ///////// Clocks /////////
-      input    MAX10_CLK1_50,
+      input     MAX10_CLK1_50, 
 
       ///////// KEY /////////
       input    [ 1: 0]   KEY,
@@ -41,14 +49,17 @@ module bomberman (
       output   [ 3: 0]   VGA_B,
 
 
-
-
-
       ///////// ARDUINO /////////
       inout    [15: 0]   ARDUINO_IO,
       inout              ARDUINO_RESET_N 
 
 );
+
+
+
+
+logic Reset_h, vssig, blank, sync, VGA_Clk;
+
 
 //=======================================================
 //  REG/WIRE declarations
@@ -58,6 +69,7 @@ module bomberman (
 	logic [1:0] signs;
 	logic [1:0] hundreds;
 	logic [9:0] drawxsig, drawysig;
+	logic [7:0] Red, Blue, Green;
 	logic [7:0] keycode;
 
 //=======================================================
@@ -69,19 +81,17 @@ module bomberman (
 	assign ARDUINO_IO[12] = 1'bZ;
 	assign SPI0_MISO = ARDUINO_IO[12];
 	
-	assign ARDUINO_IO[9] = 1'bZ;
+	assign ARDUINO_IO[9] = 1'bZ; 
 	assign USB_IRQ = ARDUINO_IO[9];
-	
-	//Assignments specific to Sparkfun USBHostShield-v13
-	assign ARDUINO_IO[7] = USB_RST;
-	//assign ARDUINO_IO[8] = 1'bZ;
-	//assign USB_GPX = ARDUINO_IO[8];
 		
 	//Assignments specific to Circuits At Home UHS_20
 	assign ARDUINO_RESET_N = USB_RST;
-	assign ARDUINO_IO[8] = 1'bZ;
-	//GPX is unconnected to shield, not needed for standard USB host - set to 0 to prevent interrupt
-	assign USB_GPX = 1'b0;
+	assign ARDUINO_IO[7] = USB_RST;//USB reset 
+	assign ARDUINO_IO[8] = 1'bZ; //this is GPX (set to input)
+	assign USB_GPX = 1'b0;//GPX is not needed for standard USB host - set to 0 to prevent interrupt
+	
+	//Assign uSD CS to '1' to prevent uSD card from interfering with USB Host (if uSD card is plugged in)
+	assign ARDUINO_IO[6] = 1'b1;
 	
 	//HEX drivers to convert numbers to HEX output
 	HexDriver hex_driver4 (hex_num_4, HEX4[6:0]);
@@ -101,13 +111,22 @@ module bomberman (
 	assign HEX2 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	
 	
-	assign {Reset_h}=~ (KEY[0]); 
+	//Assign one button to reset
+	assign {Reset_h}=~ (KEY[0]);
 
-	//assign signs = 2'b00;
-	//assign hex_num_4 = 4'h4;
-	//assign hex_num_3 = 4'h3;
-	//assign hex_num_1 = 4'h1;
-	//assign hex_num_0 = 4'h0;
+	//Our A/D converter is only 12 bit
+	assign VGA_R = Red[7:4];
+	assign VGA_B = Blue[7:4];
+	assign VGA_G = Green[7:4];
+
+//=======================================================
+//  Logic Variables
+//=======================================================
+	 
+logic bomb_drop, bomb_exist;	
+
+logic [9:0] userxsig, userysig, usersizesig, bombxsig, bombysig, bombsizesig;
+
 	
 	//remember to rename the SOC as necessary
 	nios_soc u0 (
@@ -145,23 +164,30 @@ module bomberman (
 		.hex_digits_export({hex_num_4, hex_num_3, hex_num_1, hex_num_0}),
 		.leds_export({hundreds, signs, LEDR}),
 		.keycode_export(keycode),
-		
-		//VGA
-		.vga_port_red (VGA_R),
-		.vga_port_green (VGA_G),
-		.vga_port_blue (VGA_B),
-		.vga_port_hs (VGA_HS),
-		.vga_port_vs (VGA_VS)
-		
 	 );
 	 
-//=======================================================
-//  Logic Variables
-//=======================================================
-	 
-logic Reset_h, Clk, bomb_drop;	
 
-logic [9:0] userxsig, userysig, usersizesig;
+vga_controller vgacontrol(.Reset(Reset_h), 
+								  .Clk(MAX10_CLK1_50), 
+								  .hs(VGA_HS), 
+								  .vs(VGA_VS), 
+								  .pixel_clk(VGA_CLK), 
+								  .blank(blank), 
+								  .sync(sync), 
+								  .DrawX(drawxsig), 
+								  .DrawY(drawysig));
+								  
+color_mapper colormap(.userX(userxsig), 
+							 .userY(userysig), 
+							 .userS(usersizesig),
+							 .bombX(bombxsig), 
+							 .bombY(bombysig), 
+							 .bombS(bombsizesig), 
+							 .DrawX(drawxsig), 
+							 .DrawY(drawysig), 
+							 .Red(Red), 
+							 .Green(Green), 
+							 .Blue(Blue));
 
 
 user create_user(.Reset(Reset_h), 
@@ -172,10 +198,20 @@ user create_user(.Reset(Reset_h),
 					  .heart(), 
 					  .userX(userxsig),
 					  .userY(userysig),
-					  .userS(usersizesig)
-);
+					  .bomb_drop(bomb_drop),
+					  .userS(usersizesig));
 
-bomb create_bomb(					  
+bomb create_bomb(.Reset(Reset_h), 
+					  .frame_clk(VGA_VS),
+					  .make(bomb_drop),
+					  .explode(),
+					  .userX(userxsig),
+					  .userY(userysig),		
 					  
-	 
+					  .bomb_check(bomb_exist),
+					  .bombS(bombsizesig),
+					  .bombX(bombxsig),
+					  .bombY(bombysig));
+					  
+
 endmodule

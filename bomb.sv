@@ -5,6 +5,7 @@
 module bomb(
 
 input logic Reset, frame_clk, make, explode,
+input logic [9:0] userX, userY, userS,
 
 output logic bomb_check,
 output logic [9:0] bombX, bombY, bombS
@@ -12,7 +13,9 @@ output logic [9:0] bombX, bombY, bombS
 
 
 
-logic [9:0] Bomb_X_Pos, Bomb_X_Motion, Bomb_Y_Pos, Bomb_Y_Motion, Bomb_Size;
+logic [9:0] Bomb_X_Pos, Bomb_X_Motion, Bomb_Y_Pos, Bomb_Y_Motion, Bomb_Size, temp_size;
+
+logic make_bomb;
 
     parameter [9:0] Bomb_X_Center=320;  // Center position on the X axis
     parameter [9:0] Bomb_Y_Center=240;  // Center position on the Y axis
@@ -23,21 +26,61 @@ logic [9:0] Bomb_X_Pos, Bomb_X_Motion, Bomb_Y_Pos, Bomb_Y_Motion, Bomb_Size;
     parameter [9:0] Bomb_X_Step=1;      // Step size on the X axis
     parameter [9:0] Bomb_Y_Step=1;      // Step size on the Y axis	
 
-	 
-	 assign Bomb_Size = 4;
+assign Bomb_Size = 4;
 	 
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
 		
-		bombX = bombX;
-		bombY = bombY;
+	if (Reset)
+		begin 
+			bomb_check <= 1'b0;
+			make_bomb <= 1'b0;
+			Bomb_X_Pos <= 700;
+			Bomb_Y_Pos <= 500;
+		end
+		  
+		  
+	else  
+      begin 	  
 		
-		if (Reset)
-        begin 
-				bomb_check = 1'b0;
-
-		  end
-		  
-		  
-		else  
-        begin 
+			if(make)
+			 begin
+				make_bomb <= 1'b1;
+			 end
+			
+			 else
+			  begin
+				make_bomb <= 1'b0;
+			  end
+			 	
+			if(explode)
+			 begin
+				bomb_check <= 1'b0;
+			 end
+			 
+			else if (~bomb_check && make_bomb)
+				begin
+					bomb_check <= 1'b1;
+					Bomb_X_Pos <= userX;
+					Bomb_Y_Pos <= userY;
+				end
+				
+			else
+				begin
+					if((Bomb_Size == temp_size))
+						begin
+							temp_size = 6;
+						end
+					else
+						begin
+							temp_size = 4;
+						end
+				end
+		end	 
+	end
+	
+	assign bombY = Bomb_Y_Pos;
+	assign bombX = Bomb_X_Pos;
+	assign bombS = temp_size;	
+		
+endmodule 

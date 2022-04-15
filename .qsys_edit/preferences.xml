@@ -5,9 +5,11 @@
   <columns>
    <connections preferredWidth="175" />
    <irq preferredWidth="34" />
-   <name preferredWidth="291" />
+   <description preferredWidth="305" />
   </columns>
  </systemtable>
- <library expandedCategories="Project,Library" />
+ <library expandedCategories="Library,Project" />
  <window width="1938" height="1168" x="-9" y="-9" />
+ <generation
+   path="C:/Users/manjr/OneDrive/Desktop/Feenal/385_Final_Proj/nios_soc/" />
 </preferences>
