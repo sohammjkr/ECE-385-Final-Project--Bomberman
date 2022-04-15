@@ -12,11 +12,15 @@
 //    University of Illinois ECE Department                              --
 //-------------------------------------------------------------------------
 
-module  color_mapper ( input        [9:0] userX, userY, bombX, bombY, DrawX, DrawY, bombS, userS,
+module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S, user1S,
+							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2S, user2S,
+							  input		   [9:0] DrawX, DrawY,
+							  
                        output logic [7:0]  Red, Green, Blue);
-  logic user_on;
-  logic bomb_on;
-  
+  logic user1_on;
+  logic bomb1_on;
+  logic user2_on;
+  logic bomb2_on;
 /* 
      New Ball: Generates (pixelated) circle by using the standard circle formula.  Note that while 
      this single line is quite powerful descriptively, it causes the synthesis tool to use up three
@@ -24,56 +28,105 @@ module  color_mapper ( input        [9:0] userX, userY, bombX, bombY, DrawX, Dra
 	  we have to first cast them from logic to int (signed by default) before they are multiplied). 
 */
 	  
-    int userDistX, userDistY, userSize, bombDistX, bombDistY, bombSize;
-	 assign userDistX = DrawX - userX;
-    assign userDistY = DrawY - userY;
-    assign userSize = userS;
-	 assign bombDistX = DrawX - bombX;
-    assign bombDistY = DrawY - bombY;
-    assign bombSize = bombS;
+    int user1DistX, user1DistY, user1Size, bomb1DistX, bomb1DistY, bomb1Size;
+	 int user2DistX, user2DistY, user2Size, bomb2DistX, bomb2DistY, bomb2Size;
+	 
+	 assign user1DistX = DrawX - user1X;
+    assign user1DistY = DrawY - user1Y;
+    assign user1Size = user1S;
+	 assign bomb1DistX = DrawX - bomb1X;
+    assign bomb1DistY = DrawY - bomb1Y;
+    assign bomb1Size = bomb1S;
+	 
+	 assign user2DistX = DrawX - user2X;
+    assign user2DistY = DrawY - user2Y;
+    assign user2Size = user2S;
+	 assign bomb2DistX = DrawX - bomb2X;
+    assign bomb2DistY = DrawY - bomb2Y;
+    assign bomb2Size = bomb2S;
 	 
     always_comb
     begin
-        if ( ( userDistX*userDistX + userDistY*userDistY) <= (userSize * userSize) ) 
+			//User 1 display
+        if ( ( user1DistX*user1DistX + user1DistY*user1DistY) <= (user1Size * user1Size) ) 
 			begin
-            user_on = 1'b1;
+            user1_on = 1'b1;
 			end
 			
 		  else 
 			begin
-				user_on = 1'b0;
+				user1_on = 1'b0;
 			end
-			
-		  if ( ( bombDistX*bombDistX + bombDistY*bombDistY) <= (bombSize * bombSize) ) 
+				//Bomb 1 Display
+		  if ( ( bomb1DistX*bomb1DistX + bomb1DistY*bomb1DistY) <= (bomb1Size * bomb1Size) ) 
 			begin
-            bomb_on = 1'b1;
+            bomb1_on = 1'b1;
 			end
 			
 		  else 
 			begin
-				bomb_on = 1'b0;
+				bomb1_on = 1'b0;
+			end
+			
+			// User 2 Display
+			if ( ( user2DistX*user2DistX + user2DistY*user2DistY) <= (user2Size * user2Size) ) 
+			begin
+            user2_on = 1'b1;
+			end
+			
+		  else 
+			begin
+				user2_on = 1'b0;
+			end
+		
+			//Bomb 2 Display
+		  if ( ( bomb2DistX*bomb2DistX + bomb2DistY*bomb2DistY) <= (bomb2Size * bomb2Size) ) 
+			begin
+            bomb2_on = 1'b1;
+			end
+			
+		  else 
+			begin
+				bomb2_on = 1'b0;
 			end
 	  end 	  
        
     always_comb
     begin:RGB_Display
-        if ((user_on == 1'b1)) 
+	 
+        if ((user1_on == 1'b1)) 
         begin 
             Red = 8'hff;
             Green = 8'h00;
             Blue = 8'h00;
         end 
-		  else if ((bomb_on == 1'b1))
+		  
+		  else if ((bomb1_on == 1'b1))
 		  begin
 				Red = 8'h00;
 				Green = 8'hff;
 				Blue = 8'h00;
 			end
-        else if( 
+			
+		  else if ((bomb2_on == 1'b1))
+		  begin
+				Red = 8'h00;
+				Green = 8'hff;
+				Blue = 8'h00;
+		  end
+		  
+		  else if ((user2_on == 1'b1)) 
+        begin 
+            Red = 8'h00;
+            Green = 8'h00;
+            Blue = 8'hFF;
+        end 
+		  
+        else 
         begin 
             Red = 8'h00; 
             Green = 8'h00;
-            Blue = 8'h7f - DrawX[9:3];
+            Blue = 8'h00;
         end      
     end 
     

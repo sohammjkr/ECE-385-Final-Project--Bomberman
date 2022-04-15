@@ -5,7 +5,7 @@
 module bomb(
 
 input logic Reset, frame_clk, make, explode,
-input logic [9:0] userX, userY, userS,
+input logic [9:0] userX, userY,
 
 output logic bomb_check,
 output logic [9:0] bombX, bombY, bombS

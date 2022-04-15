@@ -67,30 +67,30 @@ always_ff @(posedge Reset or posedge frame_clk)
 					  User_Y_Motion <= User_Y_Motion;  // User is somewhere in the middle, don't bounce, just keep moving
 					  
 				 case (keycode)
-					8'h50 : begin
+					8'h04 : begin
 								User_X_Motion <= -1;//A
 								User_Y_Motion<= 0;
 							  end
 					        
-					8'h4F : begin
+					8'h07 : begin
 								
 					        User_X_Motion <= 1;//D
 							  User_Y_Motion <= 0;
 							  end
 
 							  
-					8'h51 : begin
+					8'h16 : begin
 
 					        User_Y_Motion <= 1;//S
 							  User_X_Motion <= 0;
 							 end
 							  
-					8'h52 : begin
+					8'h1A : begin
 					        User_Y_Motion <= -1;//W
 							  User_X_Motion <= 0;
 							 end	  
 							 
-					8'h13 : begin
+					8'h19 : begin
 								bomb_drop <= 1'b1;
 							  end
 					default: ;

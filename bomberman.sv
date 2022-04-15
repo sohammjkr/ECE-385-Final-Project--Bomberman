@@ -123,9 +123,10 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 //  Logic Variables
 //=======================================================
 	 
-logic bomb_drop, bomb_exist;	
+logic p1bomb, p2bomb, bomb1_exist, bomb2_exist;	
 
-logic [9:0] userxsig, userysig, usersizesig, bombxsig, bombysig, bombsizesig;
+logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1sizesig;
+logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2sizesig;
 
 	
 	//remember to rename the SOC as necessary
@@ -171,18 +172,24 @@ vga_controller vgacontrol(.Reset(Reset_h),
 								  .Clk(MAX10_CLK1_50), 
 								  .hs(VGA_HS), 
 								  .vs(VGA_VS), 
-								  .pixel_clk(VGA_CLK), 
+								  .pixel_clk(VGA_ClK), 
 								  .blank(blank), 
 								  .sync(sync), 
 								  .DrawX(drawxsig), 
 								  .DrawY(drawysig));
 								  
-color_mapper colormap(.userX(userxsig), 
-							 .userY(userysig), 
-							 .userS(usersizesig),
-							 .bombX(bombxsig), 
-							 .bombY(bombysig), 
-							 .bombS(bombsizesig), 
+color_mapper colormap(.user1X(user1xsig), 
+							 .user1Y(user1ysig), 
+							 .user1S(user1sizesig),
+							 .user2X(user2xsig), 
+							 .user2Y(user2ysig), 
+							 .user2S(user2sizesig),
+							 .bomb1X(bomb1xsig), 
+							 .bomb1Y(bomb1ysig), 
+							 .bomb1S(bomb1sizesig),
+							 .bomb2X(bomb2xsig), 
+							 .bomb2Y(bomb2ysig), 
+							 .bomb2S(bomb2sizesig),  
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig), 
 							 .Red(Red), 
@@ -190,28 +197,51 @@ color_mapper colormap(.userX(userxsig),
 							 .Blue(Blue));
 
 
-user create_user(.Reset(Reset_h), 
+user1 player1(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
 					  .collide(),
 					  .keycode(keycode),
 					  .damage(),
 					  .heart(), 
-					  .userX(userxsig),
-					  .userY(userysig),
-					  .bomb_drop(bomb_drop),
-					  .userS(usersizesig));
-
-bomb create_bomb(.Reset(Reset_h), 
-					  .frame_clk(VGA_VS),
-					  .make(bomb_drop),
-					  .explode(),
-					  .userX(userxsig),
-					  .userY(userysig),		
+					  .userX(user1xsig),
+					  .userY(user1ysig),
+					  .bomb_drop(p1bomb),
+					  .userS(user1sizesig));
 					  
-					  .bomb_check(bomb_exist),
-					  .bombS(bombsizesig),
-					  .bombX(bombxsig),
-					  .bombY(bombysig));
+user2 player2(.Reset(Reset_h), 
+					  .frame_clk(VGA_VS),
+					  .collide(),
+					  .keycode(keycode),
+					  .damage(),
+					  .heart(), 
+					  .userX(user2xsig),
+					  .userY(user2ysig),
+					  .bomb_drop(p2bomb),
+					  .userS(user2sizesig));
+
+bomb player1_bomb(.Reset(Reset_h), 
+					  .frame_clk(VGA_VS),
+					  .make(p1bomb),
+					  .explode(),
+					  .userX(user1xsig),
+					  .userY(user1ysig),		
+					  
+					  .bomb_check(bomb1_exist),
+					  .bombS(bomb1sizesig),
+					  .bombX(bomb1xsig),
+					  .bombY(bomb1ysig));
+
+bomb player2_bomb(.Reset(Reset_h), 
+					  .frame_clk(VGA_VS),
+					  .make(p2bomb),
+					  .explode(),
+					  .userX(user2xsig),
+					  .userY(user2ysig),		
+					  
+					  .bomb_check(bomb2_exist),
+					  .bombS(bomb2sizesig),
+					  .bombX(bomb2xsig),
+					  .bombY(bomb2ysig));
 					  
 
 endmodule
