@@ -123,7 +123,7 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 //  Logic Variables
 //=======================================================
 	 
-logic p1bomb, p2bomb, bomb1_exist, bomb2_exist;	
+logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, boom1, boom2;	
 
 logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1sizesig;
 logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2sizesig;
@@ -242,6 +242,5 @@ bomb player2_bomb(.Reset(Reset_h),
 					  .bombS(bomb2sizesig),
 					  .bombX(bomb2xsig),
 					  .bombY(bomb2ysig));
-					  
 
 endmodule

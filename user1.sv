@@ -198,15 +198,6 @@ always_ff @(posedge Reset or posedge frame_clk)
 					default: ;
 			   endcase
 				end
-//				if(keycode == 8'h19)
-//					begin
-//						bomb_drop <= 1'b1;
-//					end
-//				else
-//					begin
-//						bomb_drop <=1'b0;
-//					end
-//				end
 				 
 				 User_Y_Pos <= (User_Y_Pos + User_Y_Motion);  // Update User position
 				 User_X_Pos <= (User_X_Pos + User_X_Motion);
