@@ -15,6 +15,7 @@
 module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S, user1S,
 							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2S, user2S,
 							  input		   [9:0] DrawX, DrawY,
+							  input 			[3:0] data_out,
 							  
                        output logic [7:0]  Red, Green, Blue);
   logic user1_on;
@@ -48,7 +49,7 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
     always_comb
     begin
 			//User 1 display
-        if ( ( user1DistX*user1DistX + user1DistY*user1DistY) <= (user1Size * user1Size) ) 
+        if ( (DrawX == user1X) && (DrawY == user1Y) ) 
 			begin
             user1_on = 1'b1;
 			end
@@ -96,9 +97,27 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
 	 
         if ((user1_on == 1'b1)) 
         begin 
-            Red = 8'hff;
-            Green = 8'h00;
-            Blue = 8'h00;
+			case(data_out)
+				3'b001:
+					Red = 8'hff;
+					Green = 8'h81;
+					Blue = 8'h70;
+					
+				3'b010:
+					Red = 8'hff;
+					Green = 8'hff;
+					Blue = 8'hff;
+				
+				3'b011:
+					Red = 8'h64;
+					Green = 8'hb0;
+					Blue = 8'hff;
+				
+				3'b100:
+					Red = 8'h38;
+					Green = 8'h87;
+					Blue =  8'h00;
+					
         end 
 		  
 		  else if ((bomb1_on == 1'b1))

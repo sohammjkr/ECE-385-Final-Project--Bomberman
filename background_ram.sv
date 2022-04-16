@@ -4,22 +4,22 @@
  *
  */
 
-module  frameROM
+module  background_RAM
 (
 		//input [4:0] data_In,
 		//input [18:0] write_address, read_address,
 		input [18:0] read_address,
-		input we, Clk,
+		input Clk,
 
-		output logic [4:0] data_Out
+		output logic [3:0] data_Out
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [4:0] mem [0:307199];
+logic [3:0] mem [0:194];
 
 initial
 begin
-	 $readmemh("sprite_bytes/background_new.txt", mem);
+	 $readmemh("char.txt", mem);
 end
 
 
@@ -30,3 +30,4 @@ always_ff @ (posedge Clk) begin
 end
 
 endmodule
+

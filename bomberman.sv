@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------
 //                                                                       --
 //                                                                       --
-//      For use with ECE 385 Lab 62                                       --
+//      For use with ECE 385 Lab 62                                      --
 //      UIUC ECE Department                                              --
 //-------------------------------------------------------------------------
 
@@ -127,7 +127,7 @@ logic p1bomb, p2bomb, bomb1_exist, bomb2_exist;
 
 logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1sizesig;
 logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2sizesig;
-
+logic [4:0] data_out;
 	
 	//remember to rename the SOC as necessary
 	nios_soc u0 (
@@ -190,6 +190,7 @@ color_mapper colormap(.user1X(user1xsig),
 							 .bomb2X(bomb2xsig), 
 							 .bomb2Y(bomb2ysig), 
 							 .bomb2S(bomb2sizesig),  
+							 .data_out(data_out),
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig), 
 							 .Red(Red), 
@@ -242,6 +243,17 @@ bomb player2_bomb(.Reset(Reset_h),
 					  .bombS(bomb2sizesig),
 					  .bombX(bomb2xsig),
 					  .bombY(bomb2ysig));
+
+logic [18:0] addr;
+
+assign addr = user1ysig[9:4] * 40 + user1xsig[9:4];
+		
+background_RAM background(  .read_address(addr),
+									.Clk(VGA_ClK),
+									.data_Out(data_out));
+									
+
+
 					  
 
 endmodule
