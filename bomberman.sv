@@ -172,13 +172,14 @@ vga_controller vgacontrol(.Reset(Reset_h),
 								  .Clk(MAX10_CLK1_50), 
 								  .hs(VGA_HS), 
 								  .vs(VGA_VS), 
-								  .pixel_clk(VGA_ClK), 
+								  .pixel_clk(VGA_Clk), 
 								  .blank(blank), 
 								  .sync(sync), 
 								  .DrawX(drawxsig), 
 								  .DrawY(drawysig));
 								  
-color_mapper colormap(.user1X(user1xsig), 
+color_mapper colormap(.Clk(VGA_VS),
+							 .user1X(user1xsig), 
 							 .user1Y(user1ysig), 
 							 .user1S(user1sizesig),
 							 .user2X(user2xsig), 
@@ -249,7 +250,7 @@ logic [18:0] addr;
 assign addr = user1ysig[9:4] * 40 + user1xsig[9:4];
 		
 background_RAM background(  .read_address(addr),
-									.Clk(VGA_ClK),
+									.Clk(MAX10_CLK1_50),
 									.data_Out(data_out));
 									
 
