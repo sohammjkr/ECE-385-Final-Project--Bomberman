@@ -54,9 +54,10 @@ always_ff @(posedge Reset or posedge frame_clk)
 				make_bomb <= 1'b0;
 			  end
 			 	
-			if(explode_check)
+			if(explode_check) 
 			 begin
 				bomb_check <= 1'b0;
+				make_bomb <= 1'b0;
 				Bomb_X_Pos <= Bomb_X_Max + 4;
 				Bomb_Y_Pos <= Bomb_Y_Max + 4;
 			 end

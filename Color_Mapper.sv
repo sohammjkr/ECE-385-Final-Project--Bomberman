@@ -68,20 +68,22 @@ assign addr = user1DistX + (16 * user1DistY);
 background_ram sprite1(  .read_address(addr),
 									.Clk(Clk),
 									.data_Out(temp_data));	
-								
-assign adrr_out = addr [3:0];	
+//map ram
+//bomb ram
+					
 
 always_ff @(posedge Clk) 
 	begin
 		TR [7:0]	<= temp_data[23:16];
 		TG [7:0] <= temp_data[15:8];
 		TB [7:0] <= temp_data[7:0];
+		
 	end
 
     always_comb
     begin
 			//User 1 display
-        if ((user1DistX < 10'd16 && user1DistY < 10'd16) && ((user1DistX >= 10'd0 && user1DistY >= 10'd0))) 
+        if ((user1DistX <= 10'd16 && user1DistY <= 10'd23) && ((user1DistX >= 10'd0 && user1DistY >= 10'd0))) 
 				begin
 					user1_on = 1'b1;
 				end
@@ -127,7 +129,7 @@ always_ff @(posedge Clk)
 			
         //  Wall Display
 		  
-        if ((wall1DistX < wall1S && wall1DistY < wall1S) && ((wall1DistX > 10'd0 && wall1DistY > 10'd0)))
+        if ((wall1DistX < wall1S && wall1DistY < wall1S) && ((wall1DistX >= 10'd0 && wall1DistY >= 10'd0)))
 			begin
             wall1_on = 1'b1;
 			end
