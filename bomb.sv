@@ -15,8 +15,9 @@ output logic [9:0] bombX, bombY, bombS
 
 logic [9:0] Bomb_X_Pos, Bomb_X_Motion, Bomb_Y_Pos, Bomb_Y_Motion, Bomb_Size, temp_size;
 
-logic make_bomb;
+logic make_bomb, explode_check;
 
+assign explode_check = explode;
     parameter [9:0] Bomb_X_Center=320;  // Center position on the X axis
     parameter [9:0] Bomb_Y_Center=240;  // Center position on the Y axis
     parameter [9:0] Bomb_X_Min=0;       // Leftmost point on the X axis
@@ -53,16 +54,18 @@ always_ff @(posedge Reset or posedge frame_clk)
 				make_bomb <= 1'b0;
 			  end
 			 	
-			if(explode)
+			if(explode_check)
 			 begin
 				bomb_check <= 1'b0;
+				Bomb_X_Pos <= Bomb_X_Max + 4;
+				Bomb_Y_Pos <= Bomb_Y_Max + 4;
 			 end
 			 
 			else if (~bomb_check && make_bomb)
 				begin
 					bomb_check <= 1'b1;
-					Bomb_X_Pos <= userX;
-					Bomb_Y_Pos <= userY;
+					Bomb_X_Pos <= userX + 4;
+					Bomb_Y_Pos <= userY + 4;
 				end
 				
 			else

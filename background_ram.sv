@@ -6,11 +6,10 @@
 
 module  background_RAM
 (
-		//input [4:0] data_In,
-		//input [18:0] write_address, read_address,
-		input [18:0] read_address,
-		input Clk,
-
+		input [4:0] data_In,
+		input [18:0] write_address, read_address,
+		//input [8:0] read_address,
+		input Clk, we,
 		output logic [3:0] data_Out
 );
 
@@ -24,8 +23,8 @@ end
 
 
 always_ff @ (posedge Clk) begin
-	//if (we)
-		//mem[write_address] <= data_In;
+	if (we)
+		mem[write_address] <= data_In;
 	data_Out<= mem[read_address];
 end
 
