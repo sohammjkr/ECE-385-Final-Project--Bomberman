@@ -183,7 +183,7 @@ vga_controller vgacontrol(.Reset(Reset_h),
 								  .DrawX(drawxsig), 
 								  .DrawY(drawysig));
 								  
-color_mapper colormap(.Clk(VGA_VS),
+color_mapper colormap(.Clk(VGA_Clk),
 							 .blank(blank),
 							 .user1X(user1xsig), 
 							 .user1Y(user1ysig), 
@@ -204,12 +204,7 @@ color_mapper colormap(.Clk(VGA_VS),
 							 .DrawY(drawysig), 
 							 .Red(Red), 
 							 .Green(Green), 
-							 .Blue(Blue),
-							 .TR(TR),
-							 .TB(TB),
-							 .TG(TG),
-							 .temp_data(temp_data),
-							 .adrr_out(adrr_out));
+							 .Blue(Blue));
 
 
 user1 player1(.Reset(Reset_h), 

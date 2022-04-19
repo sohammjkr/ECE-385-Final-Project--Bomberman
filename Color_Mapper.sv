@@ -18,15 +18,13 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
 							  input		   [9:0] DrawX, DrawY,
 							  input			Clk, blank,
 							  
-                       output logic [7:0]  Red, Green, Blue, TR, TG, TB,
-							  output logic [3:0] temp_data,
-							  output logic [3:0] adrr_out);
+                       output logic [7:0]  Red, Green, Blue);
 							  
   logic user1_on, bomb1_on, user2_on, bomb2_on;
   logic wall1_on;
 
-	//  logic [7:0] TR, TG, TB;
-   // logic [3:0] temp_data;
+	 logic [7:0] TR, TG, TB;
+   logic [23:0] temp_data;
 /* 
      New Ball: Generates (pixelated) circle by using the standard circle formula.  Note that while 
      this single line is quite powerful descriptively, it causes the synthesis tool to use up three
@@ -62,34 +60,37 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
     assign bomb2Size = bomb2S;
  
 	 
-logic [8:0] addr;
+logic [18:0] addr;
 logic [3:0] rom_addr;
-logic [63:0] rom_data;
-
 	 
-	// assign addr = user1DistX + (16 * user1DistY);
+assign addr = user1DistX + (16 * user1DistY);
 
-background_RAM background(  .read_address(addr),
+background_ram sprite1(  .read_address(addr),
 									.Clk(Clk),
 									.data_Out(temp_data));	
 								
 assign adrr_out = addr [3:0];	
 
+always_ff @(posedge Clk) 
+	begin
+		TR [7:0]	<= temp_data[23:16];
+		TG [7:0] <= temp_data[15:8];
+		TB [7:0] <= temp_data[7:0];
+	end
 
-		
     always_comb
     begin
 			//User 1 display
         if ((user1DistX < 10'd16 && user1DistY < 10'd16) && ((user1DistX >= 10'd0 && user1DistY >= 10'd0))) 
 				begin
-					addr = user1DistX + (16 * user1DistY);
 					user1_on = 1'b1;
 				end
-			else
-				begin
-					addr = user1DistX + (16 * user1DistY);
+				
+			else 
+			 begin
 					user1_on = 1'b0;
-				end
+			 end
+
 			
 				//Bomb 1 Display
 		  if ( ( bomb1DistX*bomb1DistX + bomb1DistY*bomb1DistY) <= (bomb1Size * bomb1Size) ) 
@@ -140,53 +141,19 @@ assign adrr_out = addr [3:0];
 end
 
 
- always_comb
+ always_ff @ (posedge Clk)
     begin:RGB_Display
        
 	  if(blank)
 		begin
+
 		 if ((user1_on == 1'b1)) 
 		  begin
 			
-			case(temp_data)
-				4'b0001:
-					begin
-					TR = 8'hff;
-					TG = 8'h81;
-					TB = 8'h70;
-					end
-					
-				4'b0010:
-					begin
-					TR = 8'hff;
-					TG = 8'hff;
-					TB = 8'hff;
-					end
-					
-				4'b0011:
-					begin
-					TR = 8'h64;
-					TG = 8'hb0;
-					TB = 8'hff;
-					end
-					
-				4'b0100:
-					begin
-					TR = 8'h38;
-					TG = 8'h87;
-					TB =  8'h00;
-					end
-				default:
-					begin
-					TR = 8'h00;
-					TG = 8'h00;
-					TB = 8'h00;
-					end
-				endcase
 				
-				Red = TR;
-				Green = TG;
-				Blue = TB;
+				Red <= TR;
+				Green <= TG;
+				Blue <= TB;
 				
 			end 
 		  
@@ -195,9 +162,7 @@ end
 				Red = 8'h00;
 				Green = 8'hff;
 				Blue = 8'h00;
-				TR = 8'h00;
-				TG = 8'h00;
-				TB = 8'h00;
+
 			end
 			
 		  else if ((bomb2_on == 1'b1))
@@ -205,9 +170,7 @@ end
 				Red = 8'h00;
 				Green = 8'hff;
 				Blue = 8'h00;
-				TR = 8'h00;
-				TG = 8'h00;
-				TB = 8'h00;		  
+		  
 		  end
 		  
 		  else if ((user2_on == 1'b1)) 
@@ -215,9 +178,7 @@ end
             Red = 8'h00;
             Green = 8'h00;
             Blue = 8'hFF;
-				TR = 8'h00;
-				TG = 8'h00;
-				TB = 8'h00;
+
         end 
 		  
 		  else if ((wall1_on == 1'b1)) 
@@ -225,9 +186,7 @@ end
             Red = 8'hFF;
             Green = 8'hFF;
             Blue = 8'hFF;
-				TR = 8'h00;
-				TG = 8'h00;
-				TB = 8'h00;
+
         end 
 		  
 		  else
@@ -235,9 +194,6 @@ end
             Red = 8'h00; 
             Green = 8'h00;
             Blue = 8'h7f - DrawX[9:3];
-				TR = 8'h00;
-				TG = 8'h00;
-				TB = 8'h00;
         end 
 		  
 		 end
@@ -247,9 +203,7 @@ end
             Red = 8'h00; 
             Green = 8'h00;
             Blue = 8'h00;
-				TR = 8'h00;
-				TG = 8'h00;
-				TB = 8'h00;
+
         end 
 		
     end 

@@ -4,29 +4,25 @@
  *
  */
 
-module  background_RAM
+module  background_ram
 (
-		input [4:0] data_In,
-		input [18:0] write_address, read_address,
-		//input [8:0] read_address,
-		input Clk, we,
-		output logic [3:0] data_Out
+		input [18:0] read_address,
+		input we, Clk,
+
+		output logic [4:0] data_Out
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [3:0] mem [0:255];
+logic [23:0] mem [0:367];
 
 initial
 begin
-	 $readmemh("char.txt", mem); 
+	 $readmemh("char.txt", mem);
 end
 
 
 always_ff @ (posedge Clk) begin
-	if (we)
-		mem[write_address] <= data_In;
 	data_Out<= mem[read_address];
 end
 
 endmodule
-

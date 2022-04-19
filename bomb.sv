@@ -27,7 +27,7 @@ assign explode_check = explode;
     parameter [9:0] Bomb_X_Step=1;      // Step size on the X axis
     parameter [9:0] Bomb_Y_Step=1;      // Step size on the Y axis	
 
-assign Bomb_Size = 4;
+assign Bomb_Size = 6;
 	 
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -72,11 +72,11 @@ always_ff @(posedge Reset or posedge frame_clk)
 				begin
 					if((Bomb_Size == temp_size))
 						begin
-							temp_size = 6;
+							temp_size <= 8;
 						end
 					else
 						begin
-							temp_size = 4;
+							temp_size <= 6;
 						end
 				end
 		end	 
