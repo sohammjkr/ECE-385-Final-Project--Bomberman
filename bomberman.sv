@@ -131,7 +131,7 @@ logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1sizes
 logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2sizesig;
 logic [9:0] wall1xsig, wall1ysig, wall1sizesig;
 logic [4:0] data_out;
-logic [7:0] TR, TG, TB;
+logic [7:0] TR, TG, TB, wallr, wallg, wallb;
 logic [3:0] temp_data, dummy1, dummy2, dummy3, dummy4, adrr_out;
 
 	//remember to rename the SOC as necessary
@@ -201,7 +201,10 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .wall1Y(wall1ysig), 
 							 .wall1S(wall1sizesig),
 							 .DrawX(drawxsig), 
-							 .DrawY(drawysig), 
+							 .DrawY(drawysig),
+							 .wall_R(wallr),
+							 .wall_G(wallg),
+							 .wall_B(wallb),
 							 .Red(Red), 
 							 .Green(Green), 
 							 .Blue(Blue));
@@ -269,7 +272,10 @@ walls wall_make(.Reset(Reset_h),
 					  .frame_clk(VGA_VS),
 					  .wall1X(wall1xsig),
 					  .wall1Y(wall1ysig),
-					  .wall1S(wall1sizesig));
+					  .wall1S(wall1sizesig),
+					  .wall_R(wallr),
+					  .wall_G(wallg),
+					  .wall_B(wallb));
 					  
 
 endmodule

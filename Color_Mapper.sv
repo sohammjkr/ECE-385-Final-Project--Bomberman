@@ -16,6 +16,7 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
 							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2S, user2S,
 							  input        [9:0] wall1X, wall1Y, wall1S,
 							  input		   [9:0] DrawX, DrawY,
+							  input 			[7:0] wall_R, wall_G, wall_B,
 							  input			Clk, blank,
 							  
                        output logic [7:0]  Red, Green, Blue);
@@ -23,8 +24,8 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
   logic user1_on, bomb1_on, user2_on, bomb2_on;
   logic wall1_on;
 
-	 logic [7:0] TR, TG, TB;
-   logic [23:0] temp_data;
+	 logic [7:0] TR, TG, TB, user2R, user2G, user2B, bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B;
+   logic [23:0] user1_data, user2_data, bomb1_data, bomb2_data;
 /* 
      New Ball: Generates (pixelated) circle by using the standard circle formula.  Note that while 
      this single line is quite powerful descriptively, it causes the synthesis tool to use up three
@@ -32,10 +33,10 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
 	  we have to first cast them from logic to int (signed by default) before they are multiplied). 
 */
 	  
-    logic [9:0] user1DistX, user1DistY;
+    logic [9:0] user1DistX, user1DistY, user2DistX, user2DistY;
 	 
 	 int user1Size, bomb1DistX, bomb1DistY, bomb1Size;
-	 int user2DistX, user2DistY, user2Size, bomb2DistX, bomb2DistY, bomb2Size;
+	 int user2Size, bomb2DistX, bomb2DistY, bomb2Size;
 	 int wall1DistX, wall1DistY, wall1Size;
 	 
 	 assign wall1Size = wall1S;
@@ -60,23 +61,48 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
     assign bomb2Size = bomb2S;
  
 	 
-logic [18:0] addr;
+logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr;
 logic [3:0] rom_addr;
 	 
-assign addr = user1DistX + (16 * user1DistY);
+assign user1_addr = user1DistX + (16 * user1DistY);
+assign user2_addr = user2DistX + (19 * user2DistY); 
+assign bomb1_addr = bomb1DistX + (17 * bomb1DistY); 
+assign bomb2_addr = bomb2DistX + (17 * bomb2DistY); 
 
-background_ram sprite1(  .read_address(addr),
+background_ram sprite1(  .read_address(user1_addr),
 									.Clk(Clk),
-									.data_Out(temp_data));	
+									.data_Out(user1_data));	
 //map ram
 //bomb ram
-					
+user2_ram sprite_user2(.read_address(user2_addr),
+									.Clk(Clk),
+									.data_Out(user2_data));
+
+bomb_ram sprite_bomb1(.read_address(bomb1_addr),
+									.Clk(Clk),
+									.data_Out(bomb1_data));
+
+bomb_ram sprite_bomb2(.read_address(bomb2_addr),
+									.Clk(Clk),
+									.data_Out(bomb2_data));	
 
 always_ff @(posedge Clk) 
 	begin
-		TR [7:0]	<= temp_data[23:16];
-		TG [7:0] <= temp_data[15:8];
-		TB [7:0] <= temp_data[7:0];
+		TR [7:0]	<= user1_data[23:16];
+		TG [7:0] <= user1_data[15:8];
+		TB [7:0] <= user1_data[7:0];
+		
+		user2R [7:0] <= user2_data[23:16];
+		user2G [7:0] <= user2_data[15:8];
+		user2B [7:0] <= user2_data[7:0];
+		
+		bomb1R [7:0] <= bomb1_data[23:16];
+		bomb1G [7:0] <= bomb1_data[15:8];
+		bomb1B [7:0] <= bomb1_data[7:0];
+		
+		bomb2R [7:0] <= bomb2_data[23:16];
+		bomb2G [7:0] <= bomb2_data[15:8];
+		bomb2B [7:0] <= bomb2_data[7:0];
 		
 	end
 
@@ -95,7 +121,7 @@ always_ff @(posedge Clk)
 
 			
 				//Bomb 1 Display
-		  if ( ( bomb1DistX*bomb1DistX + bomb1DistY*bomb1DistY) <= (bomb1Size * bomb1Size) ) 
+		  if ((bomb1DistX <= 10'd17 && bomb1DistY <= 10'd19) && ((bomb1DistX >= 10'd0 && bomb1DistY >= 10'd0))) 
 			begin
             bomb1_on = 1'b1;
 			end
@@ -106,7 +132,7 @@ always_ff @(posedge Clk)
 			end
 			
 			// User 2 Display
-			if ( ( user2DistX*user2DistX + user2DistY*user2DistY) <= (user2Size * user2Size) ) 
+			if ((user2DistX <= 10'd19 && user2DistY <= 10'd25) && ((user2DistX >= 10'd0 && user2DistY >= 10'd0)))  
 			begin
             user2_on = 1'b1;
 			end
@@ -117,7 +143,7 @@ always_ff @(posedge Clk)
 			end
 		
 			//Bomb 2 Display
-		  if ( ( bomb2DistX*bomb2DistX + bomb2DistY*bomb2DistY) <= (bomb2Size * bomb2Size) ) 
+		  if ((bomb2DistX <= 10'd17 && bomb2DistY <= 10'd19) && ((bomb2DistX >= 10'd0 && bomb2DistY >= 10'd0))) 
 			begin
             bomb2_on = 1'b1;
 			end
@@ -161,33 +187,33 @@ end
 		  
 		  else if ((bomb1_on == 1'b1))
 		  begin
-				Red = 8'h00;
-				Green = 8'hff;
-				Blue = 8'h00;
+				Red <= bomb1R;
+				Green <= bomb1G;
+				Blue <= bomb1B;
 
 			end
 			
 		  else if ((bomb2_on == 1'b1))
 		  begin
-				Red = 8'h00;
-				Green = 8'hff;
-				Blue = 8'h00;
+				Red <= bomb2R;
+				Green <= bomb2G;
+				Blue <= bomb2B;
 		  
 		  end
 		  
 		  else if ((user2_on == 1'b1)) 
         begin 
-            Red = 8'h00;
-            Green = 8'h00;
-            Blue = 8'hFF;
+            Red <= user2R;
+            Green <= user2G;
+            Blue <= user2B;
 
         end 
 		  
 		  else if ((wall1_on == 1'b1)) 
         begin 
-            Red = 8'hFF;
-            Green = 8'hFF;
-            Blue = 8'hFF;
+            Red <= wall_R;
+            Green <= wall_G;
+            Blue <= wall_B;
 
         end 
 		  
