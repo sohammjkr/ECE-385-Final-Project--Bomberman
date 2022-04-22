@@ -13,11 +13,11 @@ module  background_ram
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [23:0] mem [0:367];
+logic [23:0] mem [0:307199];
 
 initial
 begin
-	 $readmemh("char.txt", mem);
+	 $readmemh("background.txt", mem);
 end
 
 

@@ -24,14 +24,9 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
   logic user1_on, bomb1_on, user2_on, bomb2_on;
   logic wall1_on;
 
-	 logic [7:0] TR, TG, TB, user2R, user2G, user2B, bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B;
-   logic [23:0] user1_data, user2_data, bomb1_data, bomb2_data;
-/* 
-     New Ball: Generates (pixelated) circle by using the standard circle formula.  Note that while 
-     this single line is quite powerful descriptively, it causes the synthesis tool to use up three
-     of the 12 available multipliers on the chip!  Since the multiplicants are required to be signed,
-	  we have to first cast them from logic to int (signed by default) before they are multiplied). 
-*/
+	 logic [7:0] TR, TG, TB, user2R, user2G, user2B, bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B, bgR, bgG, bgB;
+   logic [23:0] user1_data, user2_data, bomb1_data, bomb2_data, background_data;
+
 	  
     logic [9:0] user1DistX, user1DistY, user2DistX, user2DistY;
 	 
@@ -61,15 +56,16 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
     assign bomb2Size = bomb2S;
  
 	 
-logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr;
+logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr, background_addr;
 logic [3:0] rom_addr;
 	 
 assign user1_addr = user1DistX + (16 * user1DistY);
 assign user2_addr = user2DistX + (19 * user2DistY); 
 assign bomb1_addr = bomb1DistX + (17 * bomb1DistY); 
 assign bomb2_addr = bomb2DistX + (17 * bomb2DistY); 
+assign background_addr = DrawX + (640 * DrawY);
 
-background_ram sprite1(  .read_address(user1_addr),
+user1_ram sprite_user1(  .read_address(user1_addr),
 									.Clk(Clk),
 									.data_Out(user1_data));	
 //map ram
@@ -85,6 +81,10 @@ bomb_ram sprite_bomb1(.read_address(bomb1_addr),
 bomb_ram sprite_bomb2(.read_address(bomb2_addr),
 									.Clk(Clk),
 									.data_Out(bomb2_data));	
+									
+background_ram sprite_background(.read_address(background_addr),
+												.Clk(Clk),
+												.data_Out(background_data));
 
 always_ff @(posedge Clk) 
 	begin
@@ -103,6 +103,10 @@ always_ff @(posedge Clk)
 		bomb2R [7:0] <= bomb2_data[23:16];
 		bomb2G [7:0] <= bomb2_data[15:8];
 		bomb2B [7:0] <= bomb2_data[7:0];
+		
+		bgR [7:0] <= background_data[23:16];
+		bgG [7:0] <= background_data[15:8];
+		bgB [7:0] <= background_data[7:0];
 		
 	end
 
@@ -219,9 +223,9 @@ end
 		  
 		  else
         begin 
-            Red = 8'h00; 
-            Green = 8'h00;
-            Blue = 8'h7f - DrawX[9:3];
+            Red = bgR; 
+            Green = bgG;
+            Blue = bgB;
         end 
 		  
 		 end
