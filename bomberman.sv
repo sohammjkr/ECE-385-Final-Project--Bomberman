@@ -224,7 +224,6 @@ user1 player1(.Reset(Reset_h),
 					  .userX(user1xsig),
 					  .userY(user1ysig),
 					  .bomb_drop(p1bomb),
-					  .userS(user1sizesig),
 					  .collide(collide1));
 					  
 user2 player2(.Reset(Reset_h), 

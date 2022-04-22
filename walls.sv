@@ -10,15 +10,15 @@ output logic [7:0]  wall_R, wall_G, wall_B
 logic [9:0] Wall_X_Pos, Wall_Y_Pos, Wall_Size;
 logic [7:0]  w_r, w_g, w_b;
 
-    parameter [9:0] Wall_X_Center=50;  // Center position on the X axis
-    parameter [9:0] Wall_Y_Center=37;  // Center position on the Y axis
+    parameter [9:0] Wall_X_Center=100;  // Center position on the X axis
+    parameter [9:0] Wall_Y_Center=80;  // Center position on the Y axis
     parameter [9:0] Wall_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Wall_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Wall_Y_Min=0;       // Topmost point on the Y axis
     parameter [9:0] Wall_Y_Max=479;     // Bottommost point on the Y axis
 	 
 	 
-assign Wall_Size = 10'd10;
+assign Wall_Size = 10'd100;
 
 //always_comb
 //begin

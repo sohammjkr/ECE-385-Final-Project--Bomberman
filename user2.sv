@@ -67,13 +67,13 @@ always_ff @(posedge Reset or posedge frame_clk)
 				 if ( (User_Y_Pos + User_Size) >= User_Y_Max )  // User is at the bottom edge, BOUNCE!
 					  User_Y_Motion <= (~ (User_Y_Step) + 1'b1);  // 2's complement.
 					  
-				 else if ( (User_Y_Pos - User_Size) <= User_Y_Min )  // User is at the top edge, BOUNCE!
+				 else if ( (User_Y_Pos) <= User_Y_Min )  // User is at the top edge, BOUNCE!
 					  //User_Y_Motion <= (~ (User_Y_Step) + 1'b1);
 					  User_Y_Motion <= User_Y_Step;
 				 else if ( (User_X_Pos + User_Size) >= User_X_Max )  // User is at the Right edge, BOUNCE!
 					  User_X_Motion <= (~ (User_X_Step) + 1'b1);  // 2's complement.
 					  
-				 else if ( (User_X_Pos - User_Size) <= User_X_Min )  // User is at the Left edge, BOUNCE!
+				 else if ( (User_X_Pos) <= User_X_Min )  // User is at the Left edge, BOUNCE!
 					  User_X_Motion <= User_X_Step;
 					  
 									  

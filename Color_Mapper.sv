@@ -68,8 +68,7 @@ assign background_addr = DrawX + (640 * DrawY);
 user1_ram sprite_user1(  .read_address(user1_addr),
 									.Clk(Clk),
 									.data_Out(user1_data));	
-//map ram
-//bomb ram
+
 user2_ram sprite_user2(.read_address(user2_addr),
 									.Clk(Clk),
 									.data_Out(user2_data));
@@ -82,9 +81,9 @@ bomb_ram sprite_bomb2(.read_address(bomb2_addr),
 									.Clk(Clk),
 									.data_Out(bomb2_data));	
 									
-background_ram sprite_background(.read_address(background_addr),
-												.Clk(Clk),
-												.data_Out(background_data));
+//background_ram sprite_background(.read_address(background_addr),
+//												.Clk(Clk),
+//												.data_Out(background_data));
 
 always_ff @(posedge Clk) 
 	begin
@@ -113,7 +112,7 @@ always_ff @(posedge Clk)
     always_comb
     begin
 			//User 1 display
-        if ((user1DistX <= 10'd16 && user1DistY <= 10'd23) && ((user1DistX >= 10'd0 && user1DistY >= 10'd0))) 
+        if ((user1DistX <= 10'd16 && user1DistY <= 10'd24) && ((user1DistX >= 10'd0 && user1DistY >= 10'd2))) 
 				begin
 					user1_on = 1'b1;
 				end
@@ -136,7 +135,7 @@ always_ff @(posedge Clk)
 			end
 			
 			// User 2 Display
-			if ((user2DistX <= 10'd19 && user2DistY <= 10'd25) && ((user2DistX >= 10'd0 && user2DistY >= 10'd0)))  
+			if ((user2DistX <= 10'd19 && user2DistY <= 10'd23) && ((user2DistX >= 10'd2 && user2DistY >= 10'd0)))  
 			begin
             user2_on = 1'b1;
 			end
@@ -223,9 +222,13 @@ end
 		  
 		  else
         begin 
-            Red = bgR; 
-            Green = bgG;
-            Blue = bgB;
+            Red = 8'h00; 
+            Green = 8'ha2;
+            Blue = 8'he8;
+//
+//				Red = bgR; 
+//            Green = bgG;
+//            Blue = bgB;
         end 
 		  
 		 end

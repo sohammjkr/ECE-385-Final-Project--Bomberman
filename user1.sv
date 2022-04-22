@@ -11,14 +11,14 @@ input logic [9:0] bomb2X, bomb2Y, bomb2S,
 
 output logic bomb_drop, damage, collide,
 output logic [2:0] heart,
-output logic [9:0] userX, userY, userS
+output logic [9:0] userX, userY
 ); 
 
 
-logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_Size;
+logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size;
 logic [9:0] WallX, WallY, WallS;
 logic [9:0] BombX, BombY, BombS;
-logic	bomb_flag, wall_flag;
+logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 
 	assign BombX = bomb2X;
 	assign BombY = bomb2Y;
@@ -48,7 +48,8 @@ logic	bomb_flag, wall_flag;
 	// right = 8'h4F
 	// p = 8'h13
 	
-	assign User_Size = 16;
+	assign User_X_Size = 16;
+	assign User_Y_Size = 25;
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -64,13 +65,13 @@ always_ff @(posedge Reset or posedge frame_clk)
 
 	 else  
         begin 
-				 if ( (User_Y_Pos + User_Size) >= User_Y_Max )  // User is at the bottom edge, BOUNCE!
+				 if ( (User_Y_Pos + User_Y_Size) >= User_Y_Max )  // User is at the bottom edge, BOUNCE!
 					  User_Y_Motion <= (~ (User_Y_Step) + 1'b1);  // 2's complement.
 					  
 				 else if ( (User_Y_Pos) <= User_Y_Min )  // User is at the top edge, BOUNCE!
 					  User_Y_Motion <= User_Y_Step;
 					  
-				 else if ( (User_X_Pos + User_Size) >= User_X_Max )  // User is at the Right edge, BOUNCE!
+				 else if ( (User_X_Pos + User_X_Size) >= User_X_Max )  // User is at the Right edge, BOUNCE!
 					  User_X_Motion <= (~ (User_X_Step) + 1'b1);  // 2's complement.
 					  
 				 else if ( (User_X_Pos) <= User_X_Min )  // User is at the Left edge, BOUNCE!
@@ -82,36 +83,40 @@ always_ff @(posedge Reset or posedge frame_clk)
 					begin
 						bomb_flag <= 1'b1;
 					end
-				 else if ((User_X_Pos <= BombX + BombS) && (User_Y_Pos+ User_Size <= BombY + BombS) && (User_X_Pos > BombX) && (User_Y_Pos + User_Size > BombY))
+				 else if ((User_X_Pos <= BombX + BombS) && (User_Y_Pos+ User_Y_Size <= BombY + BombS) && (User_X_Pos > BombX) && (User_Y_Pos + User_Y_Size > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_Size <= BombX + BombS) && (User_Y_Pos <= BombY + BombS) && (User_X_Pos + User_Size > BombX) && (User_Y_Pos > BombY))
+				 else if ((User_X_Pos + User_X_Size <= BombX + BombS) && (User_Y_Pos <= BombY + BombS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_Size <= BombX + BombS) && (User_Y_Pos + User_Size <= BombY + BombS) && (User_X_Pos + User_Size > BombX) && (User_Y_Pos + User_Size > BombY))
+				 else if ((User_X_Pos + User_X_Size <= BombX + BombS) && (User_Y_Pos + User_Y_Size <= BombY + BombS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos + User_Y_Size > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end	
 					  
 					//Wall Reset 
 					
-				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos > WallY))
-					begin
-						wall_flag <= 1'b1;
+				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos > WallY) && ((User_X_Pos <= WallX + WallS) && (User_Y_Pos+ User_Y_Size <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + User_Y_Size > WallY)))
+					begin	//Left edge of sprite
+//					  User_X_Motion <= User_X_Step;	
+					  wall_R <= 1'b1;
 					end
-				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos+ User_Size <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + User_Size > WallY))
-					begin
-						wall_flag <= 1'b1;
+				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos+ User_Y_Size <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + User_Y_Size > WallY) && ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos + User_Y_Size <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos + User_Y_Size > WallY))) 
+					begin	//Bottom Edge
+//					  User_Y_Motion <= (~ (User_Y_Step) + 1'b1);  // 2's complement.
+						wall_T <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_Size <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + User_Size > WallX) && (User_Y_Pos > WallY))
-					begin
-						wall_flag <= 1'b1;
+				 else if ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos > WallY) && ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos + User_Y_Size <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos + User_Y_Size > WallY)))
+					begin	//Right Edge
+//					  User_X_Motion <= (~ (User_X_Step) + 1'b1);  // 2's complement.
+					  wall_L <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_Size <= WallX + WallS) && (User_Y_Pos + User_Size <= WallY + WallS) && (User_X_Pos + User_Size > WallX) && (User_Y_Pos + User_Size > WallY))
-					begin
-						wall_flag <= 1'b1;
+				 else if ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos > WallY) && ((User_X_Pos <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos > WallY)))
+					begin		//Top Edge
+//					  User_Y_Motion <= User_Y_Step;
+						wall_B <= 1'b1;
 					end
 						
 
@@ -119,7 +124,10 @@ always_ff @(posedge Reset or posedge frame_clk)
 				 
 					begin
 					  bomb_flag <= 1'b0;
-					  wall_flag <= 1'b0;
+					  wall_T <= 1'b0;
+					  wall_B <= 1'b0;
+					  wall_R <= 1'b0;
+					  wall_L <= 1'b0;
 					  User_Y_Motion <= User_Y_Motion;  // User is somewhere in the middle, don't bounce, just keep moving
 					  
 				 case (keycode)
@@ -158,22 +166,38 @@ always_ff @(posedge Reset or posedge frame_clk)
 						User_Y_Pos <= User_Y_Min + 20;
 						User_X_Pos <= User_X_Min + 20;
 					end
-				 else if(wall_flag)
+				 else if(wall_T)
 					begin
-						User_Y_Pos <= User_Y_Min + 20;
-						User_X_Pos <= User_X_Min + 20;
+						User_Y_Pos <= WallY - User_Y_Size;
+						User_X_Pos <= User_X_Pos;
+					end 
+				else if(wall_L)
+					begin
+						User_Y_Pos <= User_Y_Pos;
+						User_X_Pos <= WallX - User_X_Size;
+					end 
+					else if(wall_R)
+					begin
+						User_Y_Pos <= User_Y_Pos;
+						User_X_Pos <= WallX + WallS + 2;
+						end 
+					else if(wall_B)
+					begin
+						User_Y_Pos <= WallY + WallS + 2;
+						User_X_Pos <= User_X_Pos;
 					end 
 				else
 					begin
 						User_Y_Pos <= (User_Y_Pos + User_Y_Motion);  // Update User position
 						User_X_Pos <= (User_X_Pos + User_X_Motion);
+//						wall_flag <= 1'b0;
+
 					end
 			end
 		end
 		
 	assign userY = User_Y_Pos;
 	assign userX = User_X_Pos;
-	assign userS = User_Size;
 	assign collide = bomb_flag;
 
 endmodule
