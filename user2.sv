@@ -173,8 +173,8 @@ always_ff @(posedge Reset or posedge frame_clk)
 				
 				if(bomb_flag)
 					begin
-						User_Y_Pos <= User_Y_Max - 20;
-						User_X_Pos <= User_X_Max - 20;
+						User_Y_Pos <= User_Y_Max - 40;
+						User_X_Pos <= User_X_Max - 40;
 					end
 				 else if(wall_T)
 					begin
