@@ -13,7 +13,7 @@ module  user1_ram
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [23:0] mem [0:367];
+logic [23:0] mem [0:485];
 
 initial
 begin

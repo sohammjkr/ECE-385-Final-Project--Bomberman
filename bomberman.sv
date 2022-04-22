@@ -127,8 +127,8 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	 
 logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, collide1, collide2;	
 
-logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1sizesig;
-logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2sizesig;
+logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysizesig;
+logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
 logic [9:0] wall1xsig, wall1ysig, wall1sizesig;
 logic [4:0] data_out;
 logic [7:0] TR, TG, TB, wallr, wallg, wallb;
@@ -193,10 +193,12 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .user2S(user2sizesig),
 							 .bomb1X(bomb1xsig), 
 							 .bomb1Y(bomb1ysig), 
-							 .bomb1S(bomb1sizesig),
+							 .bomb1XS(bomb1xsizesig),
+							 .bomb1YS(bomb1ysizesig),
 							 .bomb2X(bomb2xsig), 
 							 .bomb2Y(bomb2ysig), 
-							 .bomb2S(bomb2sizesig), 
+							 .bomb2XS(bomb2xsizesig),
+							 .bomb2YS(bomb2ysizesig), 
 							 .wall1X(wall1xsig), 
 							 .wall1Y(wall1ysig), 
 							 .wall1S(wall1sizesig),
@@ -220,7 +222,8 @@ user1 player1(.Reset(Reset_h),
 					  .wall1S(wall1sizesig),
 					  .bomb2X(bomb2xsig),
 					  .bomb2Y(bomb2ysig),
-					  .bomb2S(bomb2sizesig),
+					  .bomb2XS(bomb2xsizesig),
+					  .bomb2YS(bomb2ysizesig),
 					  .userX(user1xsig),
 					  .userY(user1ysig),
 					  .bomb_drop(p1bomb),
@@ -236,11 +239,9 @@ user2 player2(.Reset(Reset_h),
 					  .wall1S(wall1sizesig),
 					  .bomb1X(bomb1xsig),
 					  .bomb1Y(bomb1ysig),
-					  .bomb1S(bomb1sizesig),
 					  .userX(user2xsig),
 					  .userY(user2ysig),
 					  .bomb_drop(p2bomb),
-					  .userS(user2sizesig),
 					  .collide(collide2));
 
 bomb player1_bomb(.Reset(Reset_h), 
@@ -251,7 +252,8 @@ bomb player1_bomb(.Reset(Reset_h),
 					  .userY(user1ysig),		
 					  
 					  .bomb_check(bomb1_exist),
-					  .bombS(bomb1sizesig),
+					  .bombXS(bomb1xsizesig),
+					  .bombYS(bomb1ysizesig),
 					  .bombX(bomb1xsig),
 					  .bombY(bomb1ysig));
 
@@ -263,7 +265,8 @@ bomb player2_bomb(.Reset(Reset_h),
 					  .userY(user2ysig),		
 					  
 					  .bomb_check(bomb2_exist),
-					  .bombS(bomb2sizesig),
+					  .bombXS(bomb2xsizesig),
+					  .bombYS(bomb2ysizesig),
 					  .bombX(bomb2xsig),
 					  .bombY(bomb2ysig));
 					  

@@ -7,7 +7,7 @@ module user1(
 input logic Reset, frame_clk,
 input logic [7:0] keycode,
 input logic [9:0] wall1X, wall1Y, wall1S,
-input logic [9:0] bomb2X, bomb2Y, bomb2S,
+input logic [9:0] bomb2X, bomb2Y, bomb2XS, bomb2YS,
 
 output logic bomb_drop, damage, collide,
 output logic [2:0] heart,
@@ -17,13 +17,14 @@ output logic [9:0] userX, userY
 
 logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size;
 logic [9:0] WallX, WallY, WallS;
-logic [9:0] BombX, BombY, BombS;
+logic [9:0] BombX, BombY, BombXS, BombYS;
 logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 
 	assign BombX = bomb2X;
 	assign BombY = bomb2Y;
-	assign BombS = bomb2S;
-	
+	assign BombXS = bomb2XS;
+	assign BombYS = bomb2YS;
+		
 	assign WallX = wall1X;
 	assign WallY = wall1Y;
 	assign WallS = wall1S;
@@ -48,8 +49,8 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 	// right = 8'h4F
 	// p = 8'h13
 	
-	assign User_X_Size = 16;
-	assign User_Y_Size = 25;
+	assign User_X_Size = 18;
+	assign User_Y_Size = 26;
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -79,19 +80,19 @@ always_ff @(posedge Reset or posedge frame_clk)
 					  
 					  
 					  //Bomb Reset
-				 else if ((User_X_Pos <= BombX + BombS) && (User_Y_Pos <= BombY + BombS) && (User_X_Pos > BombX) && (User_Y_Pos > BombY))
+				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end
-				 else if ((User_X_Pos <= BombX + BombS) && (User_Y_Pos+ User_Y_Size <= BombY + BombS) && (User_X_Pos > BombX) && (User_Y_Pos + User_Y_Size > BombY))
+				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos+ User_Y_Size <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos + User_Y_Size > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_X_Size <= BombX + BombS) && (User_Y_Pos <= BombY + BombS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos > BombY))
+				 else if ((User_X_Pos + User_X_Size <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_X_Size <= BombX + BombS) && (User_Y_Pos + User_Y_Size <= BombY + BombS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos + User_Y_Size > BombY))
+				 else if ((User_X_Pos + User_X_Size <= BombX + BombXS) && (User_Y_Pos + User_Y_Size <= BombY + BombYS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos + User_Y_Size > BombY))
 					begin
 						bomb_flag <= 1'b1;
 					end	
@@ -165,26 +166,34 @@ always_ff @(posedge Reset or posedge frame_clk)
 					begin
 						User_Y_Pos <= User_Y_Min + 20;
 						User_X_Pos <= User_X_Min + 20;
+						User_X_Motion <= User_X_Step - 1;
+
 					end
 				 else if(wall_T)
 					begin
 						User_Y_Pos <= WallY - User_Y_Size;
 						User_X_Pos <= User_X_Pos;
+						User_Y_Motion <= User_Y_Step - 1;
 					end 
 				else if(wall_L)
 					begin
 						User_Y_Pos <= User_Y_Pos;
 						User_X_Pos <= WallX - User_X_Size;
+						User_X_Motion <= User_X_Step - 1;
+
 					end 
 					else if(wall_R)
 					begin
 						User_Y_Pos <= User_Y_Pos;
 						User_X_Pos <= WallX + WallS + 2;
+						User_X_Motion <= User_X_Step - 1;
 						end 
 					else if(wall_B)
 					begin
 						User_Y_Pos <= WallY + WallS + 2;
 						User_X_Pos <= User_X_Pos;
+						User_Y_Motion <= User_Y_Step - 1;
+
 					end 
 				else
 					begin

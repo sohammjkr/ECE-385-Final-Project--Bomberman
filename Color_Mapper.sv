@@ -12,8 +12,8 @@
 //    University of Illinois ECE Department                              --
 //-------------------------------------------------------------------------
 
-module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S, user1S,
-							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2S, user2S,
+module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1XS, bomb1YS, user1S,
+							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2XS, bomb2YS, user2S,
 							  input        [9:0] wall1X, wall1Y, wall1S,
 							  input		   [9:0] DrawX, DrawY,
 							  input 			[7:0] wall_R, wall_G, wall_B,
@@ -44,7 +44,6 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
 	 
 	 assign bomb1DistX = DrawX - bomb1X;
     assign bomb1DistY = DrawY - bomb1Y;
-    assign bomb1Size = bomb1S;
 	 
 	 assign user2DistX = DrawX - user2X;
     assign user2DistY = DrawY - user2Y;
@@ -53,17 +52,16 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1S
 
 	 assign bomb2DistX = DrawX - bomb2X;
     assign bomb2DistY = DrawY - bomb2Y;
-    assign bomb2Size = bomb2S;
  
 	 
 logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr, background_addr;
 logic [3:0] rom_addr;
 	 
-assign user1_addr = user1DistX + (16 * user1DistY);
+assign user1_addr = user1DistX + (18 * user1DistY);
 assign user2_addr = user2DistX + (19 * user2DistY); 
-assign bomb1_addr = bomb1DistX + (17 * bomb1DistY); 
-assign bomb2_addr = bomb2DistX + (17 * bomb2DistY); 
-assign background_addr = DrawX + (640 * DrawY);
+assign bomb1_addr = bomb1DistX + (15 * bomb1DistY); 
+assign bomb2_addr = bomb2DistX + (15 * bomb2DistY); 
+//assign background_addr = DrawX + (640 * DrawY);
 
 user1_ram sprite_user1(  .read_address(user1_addr),
 									.Clk(Clk),
@@ -112,7 +110,7 @@ always_ff @(posedge Clk)
     always_comb
     begin
 			//User 1 display
-        if ((user1DistX <= 10'd16 && user1DistY <= 10'd24) && ((user1DistX >= 10'd0 && user1DistY >= 10'd2))) 
+        if ((user1DistX <= 10'd18 && user1DistY <= 10'd25) && ((user1DistX >= 10'd2 && user1DistY >= 10'd2))) 
 				begin
 					user1_on = 1'b1;
 				end
@@ -124,7 +122,7 @@ always_ff @(posedge Clk)
 
 			
 				//Bomb 1 Display
-		  if ((bomb1DistX <= 10'd17 && bomb1DistY <= 10'd19) && ((bomb1DistX >= 10'd0 && bomb1DistY >= 10'd0))) 
+		  if ((bomb1DistX <= 10'd15 && bomb1DistY <= 10'd18) && ((bomb1DistX >= 10'd2 && bomb1DistY >= 10'd0))) 
 			begin
             bomb1_on = 1'b1;
 			end
@@ -146,7 +144,7 @@ always_ff @(posedge Clk)
 			end
 		
 			//Bomb 2 Display
-		  if ((bomb2DistX <= 10'd17 && bomb2DistY <= 10'd19) && ((bomb2DistX >= 10'd0 && bomb2DistY >= 10'd0))) 
+		  if ((bomb2DistX <= 10'd15 && bomb2DistY <= 10'd18) && ((bomb2DistX >= 10'd2 && bomb2DistY >= 10'd0))) 
 			begin
             bomb2_on = 1'b1;
 			end
