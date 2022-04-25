@@ -133,6 +133,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 				 
 					begin
 					  bomb_flag <= 1'b0;
+					  bomb_drop = 1'b0;
 					  wall_T <= 1'b0;
 					  wall_B <= 1'b0;
 					  wall_R <= 1'b0;
@@ -143,12 +144,14 @@ always_ff @(posedge Reset or posedge frame_clk)
 					8'h50 : begin
 								User_X_Motion <= -1;//A
 								User_Y_Motion<= 0;
+								bomb_drop <= 1'b0;
 							  end
 					        
 					8'h4F : begin
 								
 					        User_X_Motion <= 1;//D
 							  User_Y_Motion <= 0;
+							  bomb_drop <= 1'b0;
 							  end
 
 							  
@@ -156,11 +159,13 @@ always_ff @(posedge Reset or posedge frame_clk)
 
 					        User_Y_Motion <= 1;//S
 							  User_X_Motion <= 0;
+							  bomb_drop <= 1'b0;
 							 end
 							  
 					8'h52 : begin
 					        User_Y_Motion <= -1;//W
 							  User_X_Motion <= 0;
+							  bomb_drop <= 1'b0;
 							 end	  
 							 
 					8'h13 : begin
