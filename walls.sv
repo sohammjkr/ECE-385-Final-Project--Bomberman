@@ -2,13 +2,12 @@ module walls (
 
 input logic Reset, frame_clk,
 
-output logic [9:0] wall1X, wall1Y, wall1S,
-output logic [7:0]  wall_R, wall_G, wall_B
+output logic [9:0] wall1X, wall1Y, wall1S
 );
 
 
 logic [9:0] Wall_X_Pos, Wall_Y_Pos, Wall_Size;
-logic [7:0]  w_r, w_g, w_b;
+
 
     parameter [9:0] Wall_X_Center=100;  // Center position on the X axis
     parameter [9:0] Wall_Y_Center=80;  // Center position on the Y axis
@@ -18,7 +17,7 @@ logic [7:0]  w_r, w_g, w_b;
     parameter [9:0] Wall_Y_Max=479;     // Bottommost point on the Y axis
 	 
 	 
-assign Wall_Size = 10'd100;
+assign Wall_Size = 10'd32;
 
 //always_comb
 //begin
@@ -46,11 +45,9 @@ always_ff @(posedge Reset or posedge frame_clk)
 		
 		if (Reset)
         begin 
-				Wall_Y_Pos <= Wall_Y_Center;
-				Wall_X_Pos <= Wall_X_Center;
-				w_r <= 8'hFF;
-				w_g <= 8'hFF;
-				w_b <= 8'hFF;
+				Wall_Y_Pos <= 10'd64;
+				Wall_X_Pos <= 10'd64;
+				
 		  end
 
 	
@@ -59,8 +56,6 @@ always_ff @(posedge Reset or posedge frame_clk)
 	assign wall1X = Wall_X_Pos;
 	assign wall1Y = Wall_Y_Pos;
 	assign wall1S = Wall_Size;
-	assign wall_R = w_r;
-	assign wall_G = w_g;
-	assign wall_B = w_b;
+
 
 endmodule 

@@ -16,7 +16,6 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2XS, bomb2YS, user2S,
 							  input        [9:0] wall1X, wall1Y, wall1S,
 							  input		   [9:0] DrawX, DrawY,
-							  input 			[7:0] wall_R, wall_G, wall_B,
 							  input			Clk, blank,
 							  
                        output logic [7:0]  Red, Green, Blue);
@@ -24,8 +23,10 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
   logic user1_on, bomb1_on, user2_on, bomb2_on;
   logic wall1_on;
 
-	 logic [7:0] TR, TG, TB, user2R, user2G, user2B, bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B, bgR, bgG, bgB;
-   logic [23:0] user1_data, user2_data, bomb1_data, bomb2_data, background_data;
+	 logic [7:0] TR, TG, TB, user2R, user2G, user2B, bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B;
+	 logic [7:0] wallR, wallG, wallB;
+	 
+   logic [23:0] user1_data, user2_data, bomb1_data, bomb2_data;
 
 	  
     logic [9:0] user1DistX, user1DistY, user2DistX, user2DistY;
@@ -55,13 +56,23 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
  
 	 
 logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr, background_addr;
+
+logic [9:0] w_type;
+
+logic wall_data, wall_temp;
+
 logic [3:0] rom_addr;
 	 
 assign user1_addr = user1DistX + (18 * user1DistY);
+
 assign user2_addr = user2DistX + (19 * user2DistY); 
 assign bomb1_addr = bomb1DistX + (15 * bomb1DistY); 
 assign bomb2_addr = bomb2DistX + (15 * bomb2DistY); 
-//assign background_addr = DrawX + (640 * DrawY);
+
+
+
+assign w_type = DrawY[9:5] * 20 + DrawX[9:5];
+
 
 user1_ram sprite_user1(  .read_address(user1_addr),
 									.Clk(Clk),
@@ -78,6 +89,19 @@ bomb_ram sprite_bomb1(.read_address(bomb1_addr),
 bomb_ram sprite_bomb2(.read_address(bomb2_addr),
 									.Clk(Clk),
 									.data_Out(bomb2_data));	
+
+map background(
+	.address_a(w_type),
+	.address_b(w_type),
+	.clock(Clk),
+	.data_a(1'bX),
+	.data_b(1'bX),
+	.rden_a(1'b1),
+	.rden_b(1'b1),
+	.wren_a(1'b0),
+	.wren_b(1'b0),
+	.q_a(wall_temp),
+	.q_b(wall_data));
 									
 //background_ram sprite_background(.read_address(background_addr),
 //												.Clk(Clk),
@@ -101,9 +125,9 @@ always_ff @(posedge Clk)
 		bomb2G [7:0] <= bomb2_data[15:8];
 		bomb2B [7:0] <= bomb2_data[7:0];
 		
-		bgR [7:0] <= background_data[23:16];
-		bgG [7:0] <= background_data[15:8];
-		bgB [7:0] <= background_data[7:0];
+		wallR <= 8'h00;
+		wallG <= 8'h00;
+		wallB <= 8'h00;
 		
 	end
 
@@ -165,6 +189,8 @@ always_ff @(posedge Clk)
 			begin
 				wall1_on = 1'b0;
 			end
+			
+		
 		 
 		  
 end
@@ -185,7 +211,8 @@ end
 				Blue <= TB;
 				
 			end 
-		  
+		 
+			
 		  else if ((bomb1_on == 1'b1))
 		  begin
 				Red <= bomb1R;
@@ -212,21 +239,25 @@ end
 		  
 		  else if ((wall1_on == 1'b1)) 
         begin 
-            Red <= wall_R;
-            Green <= wall_G;
-            Blue <= wall_B;
+            Red <= wallR;
+            Green <= wallG;
+            Blue <= wallB;
 
         end 
 		  
+		  else if((wall_data))
+			begin
+				
+				Red <= 8'hff;
+            Green <= 8'h71;
+            Blue <= 8'h80;
+			end
+			
 		  else
         begin 
             Red = 8'h00; 
             Green = 8'ha2;
             Blue = 8'he8;
-//
-//				Red = bgR; 
-//            Green = bgG;
-//            Blue = bgB;
         end 
 		  
 		 end

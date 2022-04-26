@@ -1,0 +1,147 @@
+-- Copyright (C) 2018  Intel Corporation. All rights reserved.
+-- Your use of Intel Corporation's design tools, logic functions 
+-- and other software and tools, and its AMPP partner logic 
+-- functions, and any output files from any of the foregoing 
+-- (including device programming or simulation files), and any 
+-- associated documentation or information are expressly subject 
+-- to the terms and conditions of the Intel Program License 
+-- Subscription Agreement, the Intel Quartus Prime License Agreement,
+-- the Intel FPGA IP License Agreement, or other applicable license
+-- agreement, including, without limitation, that your use is for
+-- the sole purpose of programming logic devices manufactured by
+-- Intel and sold by Intel or its authorized distributors.  Please
+-- refer to the applicable agreement for further details.
+
+-- Quartus Prime generated Memory Initialization File (.mif)
+
+WIDTH=1;
+DEPTH=300;
+
+ADDRESS_RADIX=UNS;
+DATA_RADIX=UNS;
+
+CONTENT BEGIN
+	[0..20]  :   1;
+	[21..37]  :   0;
+	[38..40]  :   1;
+	41   :   0;
+	42   :   1;
+	43   :   0;
+	44   :   1;
+	45   :   0;
+	46   :   1;
+	47   :   0;
+	48   :   1;
+	49   :   0;
+	50   :   1;
+	51   :   0;
+	52   :   1;
+	53   :   0;
+	54   :   1;
+	55   :   0;
+	56   :   1;
+	57   :   0;
+	[58..60]  :   1;
+	[61..77]  :   0;
+	[78..80]  :   1;
+	81   :   0;
+	82   :   1;
+	83   :   0;
+	84   :   1;
+	85   :   0;
+	86   :   1;
+	87   :   0;
+	88   :   1;
+	89   :   0;
+	90   :   1;
+	91   :   0;
+	92   :   1;
+	93   :   0;
+	94   :   1;
+	95   :   0;
+	96   :   1;
+	97   :   0;
+	[98..100]  :   1;
+	[101..117]  :   0;
+	[118..120]  :   1;
+	121  :   0;
+	122  :   1;
+	123  :   0;
+	124  :   1;
+	125  :   0;
+	126  :   1;
+	127  :   0;
+	128  :   1;
+	129  :   0;
+	130  :   1;
+	131  :   0;
+	132  :   1;
+	133  :   0;
+	134  :   1;
+	135  :   0;
+	136  :   1;
+	137  :   0;
+	[138..140]  :   1;
+	[141..157]  :   0;
+	[158..160]  :   1;
+	161  :   0;
+	162  :   1;
+	163  :   0;
+	164  :   1;
+	165  :   0;
+	166  :   1;
+	167  :   0;
+	168  :   1;
+	169  :   0;
+	170  :   1;
+	171  :   0;
+	172  :   1;
+	173  :   0;
+	174  :   1;
+	175  :   0;
+	176  :   1;
+	177  :   0;
+	[178..180]  :   1;
+	[181..197]  :   0;
+	[198..200]  :   1;
+	201  :   0;
+	202  :   1;
+	203  :   0;
+	204  :   1;
+	205  :   0;
+	206  :   1;
+	207  :   0;
+	208  :   1;
+	209  :   0;
+	210  :   1;
+	211  :   0;
+	212  :   1;
+	213  :   0;
+	214  :   1;
+	215  :   0;
+	216  :   1;
+	217  :   0;
+	[218..220]  :   1;
+	[221..237]  :   0;
+	[238..240]  :   1;
+	241  :   0;
+	242  :   1;
+	243  :   0;
+	244  :   1;
+	245  :   0;
+	246  :   1;
+	247  :   0;
+	248  :   1;
+	249  :   0;
+	250  :   1;
+	251  :   0;
+	252  :   1;
+	253  :   0;
+	254  :   1;
+	255  :   0;
+	256  :   1;
+	257  :   0;
+	[258..260]  :   1;
+	[261..277]  :   0;
+	[278..299]  :   1;
+END;
