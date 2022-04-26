@@ -19,26 +19,6 @@ logic [9:0] Wall_X_Pos, Wall_Y_Pos, Wall_Size;
 	 
 assign Wall_Size = 10'd32;
 
-//always_comb
-//begin
-//	for(int i = 20; i < 640; i = i + 20)
-//	begin
-//		Wall_X_Center += i;
-//	end
-//	
-//	for(int i = 20; i < 480; i = i + 20)
-//	begin
-//		Wall_Y_Center += i;
-//	end
-//
-//end
-
-
-
-
-
-
-
 
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	

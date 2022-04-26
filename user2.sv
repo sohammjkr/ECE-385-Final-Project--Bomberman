@@ -15,10 +15,10 @@ output logic [9:0] userX, userY
 ); 
 
 
-logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size;
+logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size, halfX, halfY;
 logic [9:0] WallX, WallY, WallS;
 logic [9:0] BombX, BombY, BombXS, BombYS;
-logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, screen_L, screen_T, screen_B, screen_R;
+logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 
 	assign BombX = bomb1X;
 	assign BombY = bomb1Y;
@@ -31,10 +31,10 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, screen_L, screen_T, screen_B, s
 	
     parameter [9:0] User_X_Center=320;  // Center position on the X axis
     parameter [9:0] User_Y_Center=240;  // Center position on the Y axis
-    parameter [9:0] User_X_Min=0;       // Leftmost point on the X axis
-    parameter [9:0] User_X_Max=639;     // Rightmost point on the X axis
-    parameter [9:0] User_Y_Min=0;       // Topmost point on the Y axis
-    parameter [9:0] User_Y_Max=479;     // Bottommost point on the Y axis
+    parameter [9:0] User_X_Min=32;       // Leftmost point on the X axis
+    parameter [9:0] User_X_Max=575;     // Rightmost point on the X axis
+    parameter [9:0] User_Y_Min=32;       // Topmost point on the Y axis
+    parameter [9:0] User_Y_Max=447;     // Bottommost point on the Y axis
     parameter [9:0] User_X_Step=1;      // Step size on the X axis
     parameter [9:0] User_Y_Step=1;      // Step size on the Y axis	
 	// w = 8'h52	
@@ -51,6 +51,8 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, screen_L, screen_T, screen_B, s
 	
 	assign User_X_Size = 19;
 	assign User_Y_Size = 26;
+	assign halfX = 10;
+	assign halfY = 13;
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -59,17 +61,13 @@ always_ff @(posedge Reset or posedge frame_clk)
         begin 
             User_Y_Motion <= 10'd0; //User X Motion;
 				User_X_Motion <= 10'd0; //User Y Motion;
-				User_Y_Pos <= User_Y_Max - 64;
-				User_X_Pos <= User_X_Max - 96;
+				User_Y_Pos <= User_Y_Max - 32;
+				User_X_Pos <= User_X_Max - 32;
 				bomb_drop = 1'b0;
 				wall_T = 1'b0;
 				wall_B = 1'b0;
 				wall_R = 1'b0;
 				wall_L = 1'b0;
-				screen_T = 1'b0;
-				screen_B = 1'b0;
-				screen_L = 1'b0;
-				screen_R = 1'b0;
 		  end
 
 		        else  
@@ -107,24 +105,20 @@ always_ff @(posedge Reset or posedge frame_clk)
 					  
 					//Wall Reset 
 					
-				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos > WallY) && ((User_X_Pos <= WallX + WallS) && (User_Y_Pos+ User_Y_Size <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + User_Y_Size > WallY)))
+				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos + halfY <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + halfY > WallY))
 					begin	//Left edge of sprite
-//					  User_X_Motion <= User_X_Step;	
 					  wall_R <= 1'b1;
 					end
-				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos+ User_Y_Size <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + User_Y_Size > WallY) && ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos + User_Y_Size <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos + User_Y_Size > WallY))) 
+				 else if ((User_X_Pos + halfX <= WallX + WallS) && (User_Y_Pos + User_Y_Size <= WallY + WallS) && (User_X_Pos + halfX > WallX) && (User_Y_Pos + User_Y_Size > WallY)) 
 					begin	//Bottom Edge
-//					  User_Y_Motion <= (~ (User_Y_Step) + 1'b1);  // 2's complement.
 						wall_T <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos > WallY) && ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos + User_Y_Size <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos + User_Y_Size > WallY)))
+				 else if ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos + halfY <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos + halfY > WallY))
 					begin	//Right Edge
-//					  User_X_Motion <= (~ (User_X_Step) + 1'b1);  // 2's complement.
 					  wall_L <= 1'b1;
 					end
-				 else if ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos > WallY) && ((User_X_Pos <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos > WallY)))
+				 else if ((User_X_Pos + halfX <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + halfX > WallX) && (User_Y_Pos > WallY))
 					begin		//Top Edge
-//					  User_Y_Motion <= User_Y_Step;
 						wall_B <= 1'b1;
 					end
 
@@ -178,8 +172,11 @@ always_ff @(posedge Reset or posedge frame_clk)
 				
 				if(bomb_flag)
 					begin
-						User_Y_Pos <= User_Y_Max - 40;
-						User_X_Pos <= User_X_Max - 40;
+						User_Y_Pos <= User_Y_Max - 32;
+						User_X_Pos <= User_X_Max - 32;
+						User_X_Motion <= User_X_Step - 1;
+						User_Y_Motion <= User_Y_Step - 1;
+
 					end
 				 else if(wall_T)
 					begin
@@ -203,33 +200,6 @@ always_ff @(posedge Reset or posedge frame_clk)
 					else if(wall_B)
 					begin
 						User_Y_Pos <= WallY + WallS + 2;
-						User_X_Pos <= User_X_Pos;
-						User_Y_Motion <= User_Y_Step - 1;
-
-					end
-					
-				else if(screen_T)
-					begin
-						User_Y_Pos <= User_Y_Min + User_Y_Size;
-						User_X_Pos <= User_X_Pos;
-						User_Y_Motion <= User_Y_Step - 1;
-					end 
-				else if(screen_L)
-					begin
-						User_Y_Pos <= User_Y_Pos;
-						User_X_Pos <= User_X_Min + 2;
-						User_X_Motion <= User_X_Step - 1;
-
-					end 
-					else if(screen_R)
-					begin
-						User_Y_Pos <= User_Y_Pos;
-						User_X_Pos <= User_X_Max - User_X_Size - User_X_Size;
-						User_X_Motion <= User_X_Step - 1;
-						end 
-					else if(screen_B)
-					begin
-						User_Y_Pos <= User_Y_Max - User_Y_Size - User_Y_Size;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
 

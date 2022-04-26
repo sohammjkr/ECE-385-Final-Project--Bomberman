@@ -94,20 +94,22 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	assign ARDUINO_IO[6] = 1'b1;
 	
 	//HEX drivers to convert numbers to HEX output
-	HexDriver hex_driver5 (Red[3:0], HEX5[6:0]);
+	HexDriver hex_driver5 (uyoff[8:5], HEX5[6:0]);
 	assign HEX5[7] = 1'b1;
 	
-	HexDriver hex_driver4 (Blue[3:0], HEX4[6:0]);
+	HexDriver hex_driver4 (user1ysig[8:5], HEX4[6:0]);
 	assign HEX4[7] = 1'b1;
 	
 	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
 	assign HEX3[7] = 1'b1;
 	
-	HexDriver hex_driver0 (temp_data[3:0], HEX0[6:0]);
+	HexDriver hex_driver1 (uxoff[8:5], HEX1[6:0]);
+	assign HEX1[7] = 1'b1;
+	
+	HexDriver hex_driver0 (user1xsig[8:5], HEX0[6:0]);
 	assign HEX0[7] = 1'b1;
 	
-	HexDriver hex_driver1 (adrr_out[3:0], HEX1[6:0]);
-	assign HEX1[7] = 1'b1;
+	
 	
 	//fill in the hundreds digit as well as the negative sign
 	//assign HEX1 = {1'b1, ~signs[1], 3'b111, ~hundreds[1], ~hundreds[1], 1'b1};
@@ -129,7 +131,7 @@ logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, collide1, collide2;
 
 logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysizesig;
 logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
-logic [9:0] wall1xsig, wall1ysig, wall1sizesig;
+logic [9:0] wall1xsig, wall1ysig, wall1sizesig, uxoff, uyoff;
 logic [4:0] data_out;
 logic [7:0] TR, TG, TB, wallr, wallg, wallb;
 logic [3:0] temp_data, dummy1, dummy2, dummy3, dummy4, adrr_out;
@@ -204,9 +206,6 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .wall1S(wall1sizesig),
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig),
-							 .wall_R(wallr),
-							 .wall_G(wallg),
-							 .wall_B(wallb),
 							 .Red(Red), 
 							 .Green(Green), 
 							 .Blue(Blue));
@@ -214,6 +213,8 @@ color_mapper colormap(.Clk(VGA_Clk),
 
 user1 player1(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
+					  .DrawX(drawxsig),
+					  .DrawY(drawysig),
 					  .keycode(keycode),
 					  .damage(),
 					  .heart(),
@@ -227,7 +228,9 @@ user1 player1(.Reset(Reset_h),
 					  .userX(user1xsig),
 					  .userY(user1ysig),
 					  .bomb_drop(p1bomb),
-					  .collide(collide1));
+					  .collide(collide1),
+					  .userXoff(uxoff),
+					  .userYoff(uyoff));
 					  
 user2 player2(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
@@ -276,10 +279,7 @@ walls wall_make(.Reset(Reset_h),
 					  .frame_clk(VGA_VS),
 					  .wall1X(wall1xsig),
 					  .wall1Y(wall1ysig),
-					  .wall1S(wall1sizesig),
-					  .wall_R(wallr),
-					  .wall_G(wallg),
-					  .wall_B(wallb));
+					  .wall1S(wall1sizesig));
 					  
 
 endmodule
