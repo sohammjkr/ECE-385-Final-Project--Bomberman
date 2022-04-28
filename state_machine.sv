@@ -38,7 +38,7 @@ always_comb
 							begin
                        next_state = Continue;
 							end
-						else if (count_next == 8'h4E )	//Flickering Words Logic
+						else if (count_next == 8'h40 || count_next == 8'hC9 )	//Flickering Words Logic
 							begin
 								next_state = Start2;
 							end
@@ -55,7 +55,7 @@ always_comb
 							begin
                        next_state = Continue;
 							end
-						else if (count_next == 8'hFF)	//Flickering Words Logic
+						else if (count_next == 8'hFF || count_next == 8'h80)	//Flickering Words Logic
 							begin
 								next_state = Start1;
 							end
