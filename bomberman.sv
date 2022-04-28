@@ -70,7 +70,7 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	logic [1:0] hundreds;
 	logic [9:0] drawxsig, drawysig;
 	logic [7:0] Red, Blue, Green;
-	logic [7:0] keycode;
+	logic [7:0] keycode, counter;
 
 //=======================================================
 //  Structural coding
@@ -94,26 +94,31 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	assign ARDUINO_IO[6] = 1'b1;
 	
 	//HEX drivers to convert numbers to HEX output
-	HexDriver hex_driver5 (uyoff[8:5], HEX5[6:0]);
+	HexDriver hex_driver5 (counter[7:4], HEX5[6:0]);
 	assign HEX5[7] = 1'b1;
 	
-	HexDriver hex_driver4 (user1ysig[8:5], HEX4[6:0]);
+	HexDriver hex_driver4 (counter[3:0], HEX4[6:0]);
 	assign HEX4[7] = 1'b1;
-	
-	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
-	assign HEX3[7] = 1'b1;
-	
-	HexDriver hex_driver1 (wall_onsig, HEX1[6:0]);
-	assign HEX1[7] = 1'b1;
-	
-	HexDriver hex_driver0 (user1_onsig, HEX0[6:0]);
-	assign HEX0[7] = 1'b1;
-	
-	
+//	
+//	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
+//	assign HEX3[7] = 1'b1;
+//	
+//	HexDriver hex_driver1 (wall_onsig, HEX1[6:0]);
+//	assign HEX1[7] = 1'b1;
+//	
+//	HexDriver hex_driver0 (user1_onsig, HEX0[6:0]);
+//	assign HEX0[7] = 1'b1;
+//	
+//	
 	
 	//fill in the hundreds digit as well as the negative sign
 	//assign HEX1 = {1'b1, ~signs[1], 3'b111, ~hundreds[1], ~hundreds[1], 1'b1};
+	assign HEX0 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+	assign HEX1 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	assign HEX2 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+	assign HEX3 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+	//assign HEX4 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+	//assign HEX5 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	
 	//Assign one button to reset
 	assign {Reset_h}=~ (KEY[0]);
@@ -129,13 +134,12 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	 
 logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, collide1, collide2;	
 
-logic [9:0] user1xsig, user1ysig, user1sizesig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysizesig;
-logic [9:0] user2xsig, user2ysig, user2sizesig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
-logic [9:0] wall1xsig, wall1ysig, wall1sizesig, uxoff, uyoff;
-logic [4:0] data_out;
-logic [7:0] TR, TG, TB, wallr, wallg, wallb;
-logic [3:0] temp_data, dummy1, dummy2, dummy3, dummy4, adrr_out;
-logic user1_onsig, wall_onsig;
+logic [9:0] user1xsig, user1ysig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysizesig;
+logic [9:0] user2xsig, user2ysig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
+
+logic [2:0] game_statesig;
+
+logic begin_pixel;
 
 	//remember to rename the SOC as necessary
 	nios_soc u0 (
@@ -175,7 +179,15 @@ logic user1_onsig, wall_onsig;
 		.keycode_export(keycode)
 	 );
 	 
-
+	 
+state_machine fsm(.Reset(Reset_h), 
+					  .Clk(VGA_VS),
+					  .keycode(keycode),
+					  .p1die(collide1),
+					  .p2die(collide2),
+					  .state(game_statesig),
+					  .count_out(counter));
+					  
 vga_controller vgacontrol(.Reset(Reset_h), 
 								  .Clk(MAX10_CLK1_50), 
 								  .hs(VGA_HS), 
@@ -190,10 +202,8 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .blank(blank),
 							 .user1X(user1xsig), 
 							 .user1Y(user1ysig), 
-							 .user1S(user1sizesig),
 							 .user2X(user2xsig), 
 							 .user2Y(user2ysig), 
-							 .user2S(user2sizesig),
 							 .bomb1X(bomb1xsig), 
 							 .bomb1Y(bomb1ysig), 
 							 .bomb1XS(bomb1xsizesig),
@@ -202,30 +212,17 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .bomb2Y(bomb2ysig), 
 							 .bomb2XS(bomb2xsizesig),
 							 .bomb2YS(bomb2ysizesig), 
-							 .wall1X(wall1xsig), 
-							 .wall1Y(wall1ysig), 
-							 .wall1S(wall1sizesig),
+							 .game_state(game_statesig),
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig),
 							 .Red(Red), 
 							 .Green(Green), 
-							 .Blue(Blue),
-							 .user1_out(user1_onsig),
-							 .wall_on(wall_onsig));
+							 .Blue(Blue));
 
 
 user1 player1(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
-					  .DrawX(drawxsig),
-					  .DrawY(drawysig),
 					  .keycode(keycode),
-					  .user1_on(user1_onsig),
-					  .wall_on(wall_on_sig),
-					  .damage(),
-					  .heart(),
-					  .wall1X(wall1xsig),
-					  .wall1Y(wall1ysig),
-					  .wall1S(wall1sizesig),
 					  .bomb2X(bomb2xsig),
 					  .bomb2Y(bomb2ysig),
 					  .bomb2XS(bomb2xsizesig),
@@ -233,18 +230,11 @@ user1 player1(.Reset(Reset_h),
 					  .userX(user1xsig),
 					  .userY(user1ysig),
 					  .bomb_drop(p1bomb),
-					  .collide(collide1),
-					  .userXoff(uxoff),
-					  .userYoff(uyoff));
+					  .collide(collide1));
 					  
 user2 player2(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
 					  .keycode(keycode),
-					  .damage(),
-					  .heart(), 
-					  .wall1X(wall1xsig),
-					  .wall1Y(wall1ysig),
-					  .wall1S(wall1sizesig),
 					  .bomb1X(bomb1xsig),
 					  .bomb1Y(bomb1ysig),
 					  .bomb1XS(bomb1xsizesig),
@@ -280,11 +270,5 @@ bomb player2_bomb(.Reset(Reset_h),
 					  .bombX(bomb2xsig),
 					  .bombY(bomb2ysig));
 					  
-walls wall_make(.Reset(Reset_h), 
-					  .frame_clk(VGA_VS),
-					  .wall1X(wall1xsig),
-					  .wall1Y(wall1ysig),
-					  .wall1S(wall1sizesig));
-					  
 
-endmodule
+endmodule 

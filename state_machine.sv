@@ -1,14 +1,15 @@
 module state_machine (input logic Clk, Reset, 
 							 input logic [7:0] keycode,
 							 input logic p1die, p2die,
-							 output logic [2:0] state);
+							 output logic [2:0] state,
+							 output logic [7:0] count_out);
 							 
 				
     enum logic [2:0] {Start1, Start2, Continue, Pause, P1Win, P2Win}   curr_state, next_state; 
 
- 	 logic [8:0] count, count_next;
+ 	 logic [7:0] count, count_next;
 
-				
+	assign count_out = count;
 
 	always_ff @ (posedge Clk or posedge Reset) 
     begin
@@ -37,7 +38,7 @@ always_comb
 							begin
                        next_state = Continue;
 							end
-						else if (count_next == 8'h0F)	//Flickering Words Logic
+						else if (count_next == 8'h4E )	//Flickering Words Logic
 							begin
 								next_state = Start2;
 							end
@@ -54,7 +55,7 @@ always_comb
 							begin
                        next_state = Continue;
 							end
-						else if (count_next == 8'h1F)	//Flickering Words Logic
+						else if (count_next == 8'hFF)	//Flickering Words Logic
 							begin
 								next_state = Start1;
 							end
