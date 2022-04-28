@@ -6,29 +6,24 @@ module user2(
 
 input logic Reset, frame_clk,
 input logic [7:0] keycode,
-input logic [9:0] wall1X, wall1Y, wall1S,
 input logic [9:0] bomb1X, bomb1Y, bomb1XS, bomb1YS,
 
-output logic bomb_drop, damage, collide,
-output logic [2:0] heart,
+output logic bomb_drop, collide,
 output logic [9:0] userX, userY
 ); 
 
 
-logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size, halfX, halfY;
-logic [9:0] WallX, WallY, WallS;
+logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size;
+
 logic [9:0] BombX, BombY, BombXS, BombYS;
+
 logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 
 	assign BombX = bomb1X;
 	assign BombY = bomb1Y;
 	assign BombXS = bomb1XS;
 	assign BombYS = bomb1YS;
-	
-	assign WallX = wall1X;
-	assign WallY = wall1Y;
-	assign WallS = wall1S;
-	
+
     parameter [9:0] User_X_Center=320;  // Center position on the X axis
     parameter [9:0] User_Y_Center=240;  // Center position on the Y axis
     parameter [9:0] User_X_Min=32;       // Leftmost point on the X axis
@@ -51,8 +46,6 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 	
 	assign User_X_Size = 19;
 	assign User_Y_Size = 26;
-	assign halfX = 10;
-	assign halfY = 13;
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	

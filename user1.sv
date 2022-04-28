@@ -6,35 +6,25 @@ module user1(
 
 input logic Reset, frame_clk,
 input logic [7:0] keycode,
-input logic [9:0] wall1X, wall1Y, wall1S, DrawX, DrawY,
 input logic [9:0] bomb2X, bomb2Y, bomb2XS, bomb2YS,
-input logic wall_on, user1_on,
 
-output logic bomb_drop, damage, collide,
-output logic [2:0] heart,
-output logic [9:0] userX, userY,
-output logic [9:0] userXoff, userYoff
+output logic bomb_drop, collide,
+output logic [9:0] userX, userY
 ); 
 
 
 logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size;
-logic [9:0] WallX, WallY, WallS, halfX, halfY;
+
 logic [9:0] BombX, BombY, BombXS, BombYS;
-logic [9:0] UserX_off, UserY_off;
+
 logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 
 	assign BombX = bomb2X;
 	assign BombY = bomb2Y;
 	assign BombXS = bomb2XS;
 	assign BombYS = bomb2YS;
-		
-	assign WallX = wall1X;
-	assign WallY = wall1Y;
-	assign WallS = wall1S;
 	
-//	assign UserX_off = User_X_Pos + User_X_Size;
-//	assign UserY_off = User_Y_Pos + User_Y_Size;
-	
+
     parameter [9:0] User_X_Center=320;  // Center position on the X axis
     parameter [9:0] User_Y_Center=240;  // Center position on the Y axis
     parameter [9:0] User_X_Min=32;       // Leftmost point on the X axis
@@ -43,23 +33,9 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
     parameter [9:0] User_Y_Max=447;     // Bottommost point on the Y axis
     parameter [9:0] User_X_Step=1;      // Step size on the X axis
     parameter [9:0] User_Y_Step=1;      // Step size on the Y axis		
-	// w = 8'h1A	
-	// a = 8'h04
-	// s = 8'h14
-	// d = 8'h07
-	// v = 8'h19
-	
-	// up = 8'h52
-	// down = 8'h51
-	// left = 8'h50
-	// right = 8'h4F
-	// p = 8'h13
-	
+
 	assign User_X_Size = 18;
 	assign User_Y_Size = 26;
-	
-	assign halfX = 9;
-	assign halfY = 13;
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -212,8 +188,6 @@ always_ff @(posedge Reset or posedge frame_clk)
 					begin
 						User_Y_Pos <= (User_Y_Pos + User_Y_Motion);  // Update User position
 						User_X_Pos <= (User_X_Pos + User_X_Motion);
-//						wall_flag <= 1'b0;
-
 					end
 			end
 		end
@@ -221,6 +195,5 @@ always_ff @(posedge Reset or posedge frame_clk)
 	assign userY = User_Y_Pos;
 	assign userX = User_X_Pos;
 	assign collide = bomb_flag;
-	assign userXoff = UserX_off;
-	assign userYoff = UserY_off;
+	
 endmodule
