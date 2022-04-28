@@ -103,10 +103,10 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
 	assign HEX3[7] = 1'b1;
 	
-	HexDriver hex_driver1 (uxoff[8:5], HEX1[6:0]);
+	HexDriver hex_driver1 (wall_onsig, HEX1[6:0]);
 	assign HEX1[7] = 1'b1;
 	
-	HexDriver hex_driver0 (user1xsig[8:5], HEX0[6:0]);
+	HexDriver hex_driver0 (user1_onsig, HEX0[6:0]);
 	assign HEX0[7] = 1'b1;
 	
 	
@@ -135,6 +135,7 @@ logic [9:0] wall1xsig, wall1ysig, wall1sizesig, uxoff, uyoff;
 logic [4:0] data_out;
 logic [7:0] TR, TG, TB, wallr, wallg, wallb;
 logic [3:0] temp_data, dummy1, dummy2, dummy3, dummy4, adrr_out;
+logic user1_onsig, wall_onsig;
 
 	//remember to rename the SOC as necessary
 	nios_soc u0 (
@@ -208,7 +209,9 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .DrawY(drawysig),
 							 .Red(Red), 
 							 .Green(Green), 
-							 .Blue(Blue));
+							 .Blue(Blue),
+							 .user1_out(user1_onsig),
+							 .wall_on(wall_onsig));
 
 
 user1 player1(.Reset(Reset_h), 
@@ -216,6 +219,8 @@ user1 player1(.Reset(Reset_h),
 					  .DrawX(drawxsig),
 					  .DrawY(drawysig),
 					  .keycode(keycode),
+					  .user1_on(user1_onsig),
+					  .wall_on(wall_on_sig),
 					  .damage(),
 					  .heart(),
 					  .wall1X(wall1xsig),

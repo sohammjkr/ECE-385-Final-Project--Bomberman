@@ -73,17 +73,13 @@ always_ff @(posedge Reset or posedge frame_clk)
 		        else  
         begin 
 				 if ( (User_Y_Pos + User_Y_Size) >= User_Y_Max )  // User is at the bottom edge, BOUNCE!
-					  User_Y_Motion <= (~ (User_Y_Step) + 1'b1);  // 2's complement.
-					  
+					  wall_T <= 1'b1; 	  
 				 else if ( (User_Y_Pos) <= User_Y_Min )  // User is at the top edge, BOUNCE!
-					  User_Y_Motion <= User_Y_Step;
-					  
+					  wall_B <= 1'b1;
 				 else if ( (User_X_Pos + User_X_Size) >= User_X_Max )  // User is at the Right edge, BOUNCE!
-					  User_X_Motion <= (~ (User_X_Step) + 1'b1);  // 2's complement.
-					  
+					  wall_L <= 1'b1;
 				 else if ( (User_X_Pos) <= User_X_Min )  // User is at the Left edge, BOUNCE!
-					  User_X_Motion <= User_X_Step;
-					  
+					  wall_R <= 1'b1;
 					  
 				//Bomb Reset
 				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos > BombY))
@@ -103,25 +99,27 @@ always_ff @(posedge Reset or posedge frame_clk)
 						bomb_flag <= 1'b1;
 					end
 					  
-					//Wall Reset 
+					//Wall Check	
+			
+				else if (((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+					begin
+						wall_L <= 1'b1;
+					end
 					
-				 else if ((User_X_Pos <= WallX + WallS) && (User_Y_Pos + halfY <= WallY + WallS) && (User_X_Pos > WallX) && (User_Y_Pos + halfY > WallY))
-					begin	//Left edge of sprite
-					  wall_R <= 1'b1;
-					end
-				 else if ((User_X_Pos + halfX <= WallX + WallS) && (User_Y_Pos + User_Y_Size <= WallY + WallS) && (User_X_Pos + halfX > WallX) && (User_Y_Pos + User_Y_Size > WallY)) 
-					begin	//Bottom Edge
-						wall_T <= 1'b1;
-					end
-				 else if ((User_X_Pos + User_X_Size <= WallX + WallS) && (User_Y_Pos + halfY <= WallY + WallS) && (User_X_Pos + User_X_Size > WallX) && (User_Y_Pos + halfY > WallY))
-					begin	//Right Edge
-					  wall_L <= 1'b1;
-					end
-				 else if ((User_X_Pos + halfX <= WallX + WallS) && (User_Y_Pos <= WallY + WallS) && (User_X_Pos + halfX > WallX) && (User_Y_Pos > WallY))
-					begin		//Top Edge
+				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+					begin
 						wall_B <= 1'b1;
 					end
-
+					
+				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+					begin
+						wall_T <= 1'b1;
+					end
+					
+				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+					begin
+						wall_R <= 1'b1;
+					end
 					  
 				 else 
 				 
@@ -177,33 +175,34 @@ always_ff @(posedge Reset or posedge frame_clk)
 						User_X_Motion <= User_X_Step - 1;
 						User_Y_Motion <= User_Y_Step - 1;
 
-					end
-				 else if(wall_T)
+					end				 
+					else if(wall_T)
 					begin
-						User_Y_Pos <= WallY - User_Y_Size;
+						User_Y_Pos <= User_Y_Pos - 2;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
 					end 
 				else if(wall_L)
 					begin
 						User_Y_Pos <= User_Y_Pos;
-						User_X_Pos <= WallX - User_X_Size;
+						User_X_Pos <= User_X_Pos - 2;
 						User_X_Motion <= User_X_Step - 1;
 
 					end 
 					else if(wall_R)
 					begin
 						User_Y_Pos <= User_Y_Pos;
-						User_X_Pos <= WallX + WallS + 2;
+						User_X_Pos <= User_X_Pos + 2;
 						User_X_Motion <= User_X_Step - 1;
 						end 
 					else if(wall_B)
 					begin
-						User_Y_Pos <= WallY + WallS + 2;
+						User_Y_Pos <= User_Y_Pos + 2;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
 
-					end	
+					end
+						
 				else
 					begin
 						User_Y_Pos <= (User_Y_Pos + User_Y_Motion);  // Update User position

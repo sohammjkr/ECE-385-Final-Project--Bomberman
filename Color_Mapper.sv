@@ -18,10 +18,10 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 							  input		   [9:0] DrawX, DrawY,
 							  input			Clk, blank,
 							  
-                       output logic [7:0]  Red, Green, Blue);
+                       output logic [7:0]  Red, Green, Blue,
+							  output logic user1_out, wall_on);
 							  
   logic user1_on, bomb1_on, user2_on, bomb2_on;
-  logic wall1_on;
 
 	 logic [7:0] TR, TG, TB, user2R, user2G, user2B, bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B;
 	 logic [7:0] wallR, wallG, wallB;
@@ -59,7 +59,7 @@ logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr, background_addr;
 
 logic [9:0] w_type;
 
-logic wall_data, wall_temp;
+logic [1:0] wall_data, wall_temp;
 
 logic [3:0] rom_addr;
 	 
@@ -129,6 +129,9 @@ always_ff @(posedge Clk)
 		wallG <= 8'h00;
 		wallB <= 8'h00;
 		
+		wall_on <= wall_data;
+		user1_out <= user1_on;
+		
 	end
 
     always_comb
@@ -177,19 +180,6 @@ always_ff @(posedge Clk)
 			begin
 				bomb2_on = 1'b0;
 			end
-			
-        //  Wall Display
-		  
-        if ((wall1DistX < wall1S && wall1DistY < wall1S) && ((wall1DistX >= 10'd0 && wall1DistY >= 10'd0)))
-			begin
-            wall1_on = 1'b1;
-			end
-			
-		  else 
-			begin
-				wall1_on = 1'b0;
-			end
-			
 		
 		 
 		  
@@ -201,8 +191,32 @@ end
        
 	  if(blank)
 		begin
-
-		 if ((user1_on == 1'b1)) 
+			
+		if((wall_data == 2'b01))
+			begin
+				
+				Red <= 8'hff;
+            Green <= 8'h71;
+            Blue <= 8'h80;
+			end
+			
+		  else if((wall_data == 2'b10))
+			begin
+				
+				Red <= 8'h00;
+            Green <= 8'hae;
+            Blue <= 8'h28;
+			end
+			
+			else if((wall_data == 2'b11))
+			begin
+				
+				Red <= 8'hff;
+            Green <= 8'he2;
+            Blue <= 8'h29;
+			end
+		
+		 else if ((user1_on == 1'b1)) 
 		  begin
 			
 				
@@ -212,7 +226,14 @@ end
 				
 			end 
 		 
-			
+		else if ((user2_on == 1'b1)) 
+        begin 
+            Red <= user2R;
+            Green <= user2G;
+            Blue <= user2B;
+
+        end 
+		  
 		  else if ((bomb1_on == 1'b1))
 		  begin
 				Red <= bomb1R;
@@ -228,31 +249,7 @@ end
 				Blue <= bomb2B;
 		  
 		  end
-		  
-		  else if ((user2_on == 1'b1)) 
-        begin 
-            Red <= user2R;
-            Green <= user2G;
-            Blue <= user2B;
-
-        end 
-		  
-		  else if ((wall1_on == 1'b1)) 
-        begin 
-            Red <= wallR;
-            Green <= wallG;
-            Blue <= wallB;
-
-        end 
-		  
-		  else if((wall_data))
-			begin
-				
-				Red <= 8'hff;
-            Green <= 8'h71;
-            Blue <= 8'h80;
-			end
-			
+		 	
 		  else
         begin 
             Red = 8'h00; 
