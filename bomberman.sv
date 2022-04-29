@@ -121,7 +121,7 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	//assign HEX5 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	
 	//Assign one button to reset
-	assign {Reset_h}=~ (KEY[0]);
+	assign {Reset_h}= ~(KEY[0]);
 
 	//Our A/D converter is only 12 bit
 	assign VGA_R = Red[7:4];
@@ -137,7 +137,7 @@ logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, collide1, collide2;
 logic [9:0] user1xsig, user1ysig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysizesig;
 logic [9:0] user2xsig, user2ysig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
 
-logic [2:0] game_statesig;
+logic [4:0] game_statesig;
 
 logic begin_pixel;
 
@@ -222,6 +222,7 @@ color_mapper colormap(.Clk(VGA_Clk),
 
 user1 player1(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
+					  .allow(game_statesig),
 					  .keycode(keycode),
 					  .bomb2X(bomb2xsig),
 					  .bomb2Y(bomb2ysig),
@@ -234,6 +235,7 @@ user1 player1(.Reset(Reset_h),
 					  
 user2 player2(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
+					  .allow(game_statesig),
 					  .keycode(keycode),
 					  .bomb1X(bomb1xsig),
 					  .bomb1Y(bomb1ysig),

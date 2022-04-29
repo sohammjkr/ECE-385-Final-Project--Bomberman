@@ -14,29 +14,32 @@
 
 module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1XS, bomb1YS, //User1 sprite and bomb position
 							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2XS, bomb2YS, //User2 sprite and bomb position
-							  input	logic [2:0] game_state,
+							  input	logic [4:0] game_state,
 							  input		   [9:0] DrawX, DrawY,
 							  input			Clk, blank, 
 							  
                        output logic [7:0]  Red, Green, Blue);
 							  
-  logic user1_on, bomb1_on, user2_on, bomb2_on;
+  logic user1_on, bomb1_on, user2_on, bomb2_on, p1w_data, p2w_data;
 
 	 logic [7:0] user1R, user1G, user1B, user2R, user2G, user2B;
 	 logic [7:0] bomb1R, bomb1G, bomb1B, bomb2R, bomb2G, bomb2B;
-	 logic [7:0] startR, startG, startB;
+	 logic [7:0] startR, startG, startB, pauseR, pauseG, pauseB;
+	 logic [7:0] win1R, win1G, win1B, win2R, win2G, win2B;
 
 	 
     logic [23:0] user1_data, user2_data, bomb1_data, bomb2_data;
 	 
     logic [9:0] user1DistX, user1DistY, user2DistX, user2DistY;
 	 
-	 logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr, background_addr;
+	 logic [18:0] user1_addr, user2_addr, bomb1_addr, bomb2_addr, background_addr, pause_addr, pw_addr;
 	 
 	 logic [19:0] start_addr;
 	 
 	 logic [3:0] start_data;
-
+	 
+	 logic [1:0] pause_data;
+	 
 	 logic [9:0] w_type;
 
     logic [1:0] wall_data, wall_temp;
@@ -64,15 +67,31 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 	
 	assign start_addr = DrawX + (640 * DrawY);
 	
+	assign pw_addr = (DrawX - 10'd210) + ( 220 * (DrawY - 10'd232));
+	
+	assign pause_addr = (DrawX - 10'd173) + (294 * (DrawY - 10'd220));
+	
 	assign bomb1_addr = bomb1DistX + (15 * bomb1DistY); 
 	assign bomb2_addr = bomb2DistX + (15 * bomb2DistY); 
 
 	assign w_type = DrawY[9:5] * 20 + DrawX[9:5];
 
-
-startpage_ram startstate(.read_address(start_addr),
+p1win_ram p1win(.read_address(pw_addr),
 								 .Clk(Clk),
-								 .data_Out(start_data));
+								 .data_Out(p1w_data));
+
+p2win_ram p2win(.read_address(pw_addr),
+								 .Clk(Clk),
+								 .data_Out(p2w_data));
+
+
+//startpage_ram startstate(.read_address(start_addr),
+//								 .Clk(Clk),
+//								 .data_Out(start_data));
+
+pausescreen_ram pausestate(.read_address(pause_addr),
+								 .Clk(Clk),
+								 .data_Out(pause_data));
 								 
 user1_ram sprite_user1(  .read_address(user1_addr),
 									.Clk(Clk),
@@ -106,7 +125,7 @@ map background(
 
 always_ff @(posedge Clk) 
 	begin
-		user1R [7:0]	<= user1_data[23:16];
+		user1R [7:0]<= user1_data[23:16];
 		user1G [7:0] <= user1_data[15:8];
 		user1B [7:0] <= user1_data[7:0];
 		
@@ -154,6 +173,63 @@ always_ff @(posedge Clk)
 					 startB <= 8'h60;					 
 					 end
 					 
+			default: begin
+					 startR <= 8'h00;
+					 startG <= 8'h00;
+					 startB <= 8'h00;
+					 end
+			endcase
+			
+			case(pause_data)
+			
+			2'b00 : begin
+					 pauseR <= 8'h00;
+					 pauseG <= 8'h00;
+					 pauseB <= 8'h00;
+					 end
+					 
+			2'b01: begin
+					 pauseR <= 8'h00;
+					 pauseG <= 8'h00;
+					 pauseB <= 8'h00;
+					 end
+			2'b10: begin
+					 pauseR <= 8'hFF;
+					 pauseG <= 8'hFF;
+					 pauseB <= 8'hFF;
+					 end			
+			default: ;
+			endcase
+			
+			case(p1w_data)
+			
+			1'b0 : begin
+					 win1R <= 8'h00;
+					 win1G <= 8'h00;
+					 win1B <= 8'h00;
+					 end
+					 
+			1'b1: begin
+					 win1R <= 8'hFF;
+					 win1G <= 8'hFF;
+					 win1B <= 8'hFF;
+					 end
+			default: ;
+			endcase
+			
+			case(p2w_data)
+			
+			1'b0 : begin
+					 win2R <= 8'h00;
+					 win2G <= 8'h00;
+					 win2B <= 8'h00;
+					 end
+					 
+			1'b1: begin
+					 win2R <= 8'hFF;
+					 win2G <= 8'hFF;
+					 win2B <= 8'hFF;
+					 end			
 			default: ;
 			endcase
 	end	
@@ -216,33 +292,89 @@ end
 	  if(blank)
 		begin
 		
-		if((game_state == 3'b000 || game_state == 3'b101) && (DrawY <= 10'd350) && (DrawX > 10'd5)) 
+		if((game_state == 5'b00000 || game_state == 5'b00001))	//Start1 or Start2 State 
 			begin
-				Red = startR;
-				Green = startG;
-				Blue = startB;
+				if((DrawY <= 10'd350) && (DrawX > 10'd5))
+					begin
+						Red = startR;
+						Green = startG;
+						Blue = startB;
+					end
+					
+				else if (DrawY >= 10'd377)
+					begin
+						Red = 8'h00;
+						Green = 8'h00;
+						Blue = 8'h00;
+					end
+					
+				else if(game_state == 5'b00000 && DrawX > 10'd5 && DrawY > 10'd350 && DrawY < 10'd377)
+					begin
+						Red = startR;
+						Green = startG;
+						Blue = startB;
+					end
+				else if(game_state == 5'b00001 && DrawY > 10'd350 && DrawX > 10'd5 && DrawY < 10'd377)
+					begin
+						Red = 8'h00;
+						Green = 8'h00;
+						Blue = 8'h00;
+					end
 			end
-		else if(game_state == 3'b000 && DrawY > 10'd350 && (DrawX > 10'd5))
-			begin
-				Red = startR;
-				Green = startG;
-				Blue = startB;
-			end
-		else if(game_state == 3'b101 && DrawY > 10'd350 && (DrawX > 10'd5))
-			begin
-				Red = 8'h00;
-				Green = 8'h00;
-				Blue = 8'h00;
-			end
-		else if((game_state == 3'b000 || game_state == 3'b101)  && (DrawX <= 10'd5))
-			begin
-				Red = 8'h00;
-				Green = 8'h00;
-				Blue = 8'h00;
-				
-			end	
 			
-		else 
+		else if (game_state == 5'b11111) 						//Pause State
+			begin
+				if(DrawX >= 10'd173 && DrawY >= 10'd220 && DrawX < 10'd467 && DrawY < 10'd261)
+					begin
+						Red = pauseR;
+						Green = pauseG;
+						Blue = pauseB;
+					end
+				else
+					begin
+						Red = 8'h00;
+						Green = 8'h00;
+						Blue = 8'h00;
+					end
+			end
+		
+		else if (game_state == 5'b10000)							//P1 Win State
+			begin		
+				
+				if(DrawX >= 10'd210 && DrawY >= 10'd232 && DrawX < 10'd430 && DrawY < 10'd248)
+					begin
+						Red = win1R;
+						Green = win1G;
+						Blue = win1B;
+					end
+					
+				else
+					begin
+						Red = 8'h00;
+						Green = 8'h00;
+						Blue = 8'h00;
+					end
+			end
+			
+		else if (game_state == 5'b10001)							//P2 Win State
+			begin
+				
+				if(DrawX >= 10'd210 && DrawY >= 10'd232 && DrawX < 10'd430 && DrawY < 10'd248)
+					begin
+						Red = win2R;
+						Green = win2G;
+						Blue = win2B;
+					end
+				else
+					begin
+						Red = 8'h00;
+						Green = 8'h00;
+						Blue = 8'h00;
+					end
+			end
+			
+		
+		else 															//continue State
 			begin
 			
 		if((wall_data == 2'b01))

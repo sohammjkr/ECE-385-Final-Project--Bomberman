@@ -6,6 +6,7 @@ module user1(
 
 input logic Reset, frame_clk,
 input logic [7:0] keycode,
+input logic [4:0] allow,
 input logic [9:0] bomb2X, bomb2Y, bomb2XS, bomb2YS,
 
 output logic bomb_drop, collide,
@@ -24,7 +25,6 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 	assign BombXS = bomb2XS;
 	assign BombYS = bomb2YS;
 	
-
     parameter [9:0] User_X_Center=320;  // Center position on the X axis
     parameter [9:0] User_Y_Center=240;  // Center position on the Y axis
     parameter [9:0] User_X_Min=32;       // Leftmost point on the X axis
@@ -53,6 +53,20 @@ always_ff @(posedge Reset or posedge frame_clk)
 				wall_L <= 1'b0;
 		  end
 
+	  else if(allow == 5'b00000 || allow == 5'b00001 || allow == 5'b11111)
+		begin
+			User_Y_Pos <= (User_Y_Pos);  // Update User position
+			User_X_Pos <= (User_X_Pos);
+			User_Y_Motion <= 10'd0; //User X Motion;
+			User_X_Motion <= 10'd0; //User Y Motion;
+			bomb_drop <= bomb_drop;
+			wall_T <= wall_T;
+			wall_B <= wall_B;
+			wall_R <= wall_R;
+			wall_L <= wall_L;
+
+		end
+		
 	 else  
         begin
 				 

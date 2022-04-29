@@ -4,20 +4,20 @@
  *
  */
 
-module  startpage_ram
+module  p2win_ram
 (
 		input [19:0] read_address,
 		input we, Clk,
 
-		output logic [3:0] data_Out
+		output logic data_Out
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [3:0] mem [0:241279];
+logic [0:0] mem [0:3519];
 
 initial
 begin
-	 $readmemh("startpage.txt", mem);
+	 $readmemh("p2win.txt", mem);
 end
 
 

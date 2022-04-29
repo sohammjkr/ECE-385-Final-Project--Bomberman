@@ -4,20 +4,20 @@
  *
  */
 
-module  startpage_ram
+module  pausescreen_ram
 (
 		input [19:0] read_address,
 		input we, Clk,
 
-		output logic [3:0] data_Out
+		output logic [1:0]data_Out
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [3:0] mem [0:241279];
+logic [1:0] mem [0:12053];
 
 initial
 begin
-	 $readmemh("startpage.txt", mem);
+	 $readmemh("pausescreen.txt", mem);
 end
 
 

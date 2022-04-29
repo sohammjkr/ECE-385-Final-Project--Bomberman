@@ -1,11 +1,10 @@
 module state_machine (input logic Clk, Reset, 
 							 input logic [7:0] keycode,
 							 input logic p1die, p2die,
-							 output logic [2:0] state,
-							 output logic [7:0] count_out);
-							 
+							 output logic [4:0] state,
+							 output logic [7:0] count_out);							 
 				
-    enum logic [2:0] {Start1, Start2, Continue, Pause, P1Win, P2Win}   curr_state, next_state; 
+    enum logic [4:0] {Start1, Start2, Continue, Bomb1, Bomb2, Explode1_1, Explode2_1, Explode1_2, Explode1_3, Explode2_2, Explode2_3 Pause, P1Win, P2Win}   curr_state, next_state; 
 
  	 logic [7:0] count, count_next;
 
@@ -28,12 +27,11 @@ module state_machine (input logic Clk, Reset,
 			
 always_comb 	
 	begin
-
 		  next_state  = curr_state;	//required because I haven't enumerated all possibilities below
-        case (curr_state)
+        
+		  case (curr_state)
 	
-			Start1 :begin 
-						
+			Start1 :begin 		
 						if(keycode == 8'h2c) //Space to Start the Game
 							begin
                        next_state = Continue;
@@ -68,9 +66,20 @@ always_comb
 					
 			Continue :begin 
 						
+						
 						if(keycode == 8'h29) 		//Esc to Pause the Game
 							begin
                        next_state = Pause;
+							end
+							
+						else if (keycode == 8'h13) //Bomb2 Drop
+							begin
+								next_state = Bomb1;
+							end
+							
+						else if (keycode == 8'h19)	//Bomb1 Drop
+							begin
+								next_state = Bomb2;
 							end
 							
 						else if (p1die) 				//collide1 == p1die
@@ -82,8 +91,89 @@ always_comb
 							begin
 								next_state = P1Win;	//Player 1 Win State
 							end
+
 						
 					end
+					
+			Bomb1 :begin
+						
+						if(count_next = 8'hFF)			//Bomb Explosion Timer Waiting
+							begin
+								next_state = Explode1_1;
+							end
+						else
+							next_state = Bomb1;
+					 end
+					 
+			Explode1_1 :begin
+						
+						if(count_next = 8'h40)			// Bomb Explosion Animation Timing 1
+							begin
+								next_state = Explode1_2;
+							end
+						else
+							next_state = Explode1_1;
+					 end
+					 
+			Explode1_2 :begin
+						
+						if(count_next = 8'h80)			// Bomb Explosion Animation Timing 2
+							begin
+								next_state = Explode1_3;
+							end
+						else
+							next_state = Explode1_2;
+					 end
+					 
+			Explode1_3 :begin
+						
+						if(count_next = 8'hC0)			// Bomb Explosion Animation Timing 3
+							begin
+								next_state = Continue;
+							end
+						else
+							next_state = Explode1_3;
+					 end
+					 
+			Bomb2 :begin
+						
+						if(count_next = 8'hFF)			//Bomb Explosion Timer Waiting
+							begin
+								next_state = Explode2_1;
+							end
+						else
+							next_state = Bomb2;
+					 end
+					 
+			Explode2_1 :begin
+						
+						if(count_next = 8'h40)			// Bomb Explosion Animation Timing 1
+							begin
+								next_state = Explode2_2;
+							end
+						else
+							next_state = Explode2_1;
+					 end
+					 
+			Explode2_2 :begin
+						
+						if(count_next = 8'h80)			// Bomb Explosion Animation Timing 2
+							begin
+								next_state = Explode2_3;
+							end
+						else
+							next_state = Explode2_2;
+					 end
+					 
+			Explode2_3 :begin
+						
+						if(count_next = 8'hC0)			// Bomb Explosion Animation Timing 3
+							begin
+								next_state = Continue;
+							end
+						else
+							next_state = Explode2_3;
+					 end
 					
 			Pause :begin
 						
@@ -97,9 +187,12 @@ always_comb
 						
 						if(count_next == 8'hFF)
 							begin
-								next_state = Start1;
+								if(keycode == 8'h1F)
+									begin
+										next_state = Start1;
+									end
 							end
-						else
+						else 
 							begin
 								next_state = P1Win;
 							end
@@ -109,53 +202,96 @@ always_comb
 						
 						if(count_next == 8'hFF)
 							begin
-								next_state = Start1;
+								if(keycode == 8'h1F)
+									begin
+										next_state = Start1;
+									end
 							end
-						else
+						else 
 							begin
 								next_state = P2Win;
 							end
 					 end
+
 endcase
 
 
 				case(curr_state)
 				
 		Start1 :begin 
-					state = 3'b000;
+					state = 5'b00000;
 					count_next = count + 1;
 				 end
 				 
 		Start2 :begin 
-					state = 3'b101;
+					state = 5'b00001;
 					count_next = count + 1;
 				 end
+				 
 		Continue :begin 
 						
-						state = 3'b001;
+						state = 5'b11000;
 						count_next = 8'h00;
 					 end
-					
+					 
+		Bomb1 :begin
+					state = 5'b00010;
+					count_next = count + 1;
+				 end
+				 
+		Explode1_1 :begin
+					state = 5'b00011;
+					count_next = count + 1;
+				 end
+				 
+		Explode1_2 :begin
+					state = 5'b00100;
+					count_next = count + 1;
+				 end
+				 
+		Explode1_3 :begin
+					state = 5'b00101;
+					count_next = count + 1;
+				 end
+				 
+		Bomb2 :begin
+					state = 5'b01010;
+					count_next = count + 1;
+				 end
+				 
+		Explode2_1 :begin
+					state = 5'b01011;
+					count_next = count + 1;
+				 end
+				 
+		Explode2_2 :begin
+					state = 5'b01100;
+					count_next = count + 1;
+				 end
+				 
+		Explode2_3 :begin
+					state = 5'b01101;
+					count_next = count + 1;
+				 end
+				 
 		Pause :begin 
 						
-						state = 3'b010;
+						state = 5'b11111;
 						count_next = 8'h00;
 					end
 		P1Win :begin 
 						
-						state = 3'b011;
+						state = 5'b10000;
 						count_next = count + 1;
-			
 			    end
 					
 		P2Win :begin 
 						
-						state = 3'b100;
+						state = 5'b10001;
 						count_next = count + 1;
-						
 				 end
 				 
-		default: ;
+		default:  ;
 	endcase
 end	  
 			
