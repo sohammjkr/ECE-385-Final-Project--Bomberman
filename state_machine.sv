@@ -4,7 +4,7 @@ module state_machine (input logic Clk, Reset,
 							 output logic [4:0] state,
 							 output logic [7:0] count_out);							 
 				
-    enum logic [4:0] {Start1, Start2, Continue, Bomb1, Bomb2, Explode1_1, Explode2_1, Explode1_2, Explode1_3, Explode2_2, Explode2_3 Pause, P1Win, P2Win}   curr_state, next_state; 
+    enum logic [4:0] {Start1, Start2, Continue, Bomb1, Bomb2, Explode1_1, Explode2_1, Explode1_2, Explode1_3, Explode2_2, Explode2_3, Pause, P1Win, P2Win}   curr_state, next_state; 
 
  	 logic [7:0] count, count_next;
 
@@ -97,7 +97,7 @@ always_comb
 					
 			Bomb1 :begin
 						
-						if(count_next = 8'hFF)			//Bomb Explosion Timer Waiting
+						if(count_next == 8'hFF)			//Bomb Explosion Timer Waiting
 							begin
 								next_state = Explode1_1;
 							end
@@ -105,9 +105,9 @@ always_comb
 							next_state = Bomb1;
 					 end
 					 
-			Explode1_1 :begin
+			Explode1_1 :begin								//small
 						
-						if(count_next = 8'h40)			// Bomb Explosion Animation Timing 1
+						if(count_next == 8'h40)			// Bomb Explosion Animation Timing 1
 							begin
 								next_state = Explode1_2;
 							end
@@ -115,9 +115,9 @@ always_comb
 							next_state = Explode1_1;
 					 end
 					 
-			Explode1_2 :begin
+			Explode1_2 :begin							//big one
 						
-						if(count_next = 8'h80)			// Bomb Explosion Animation Timing 2
+						if(count_next == 8'h80)			// Bomb Explosion Animation Timing 2
 							begin
 								next_state = Explode1_3;
 							end
@@ -125,9 +125,9 @@ always_comb
 							next_state = Explode1_2;
 					 end
 					 
-			Explode1_3 :begin
+			Explode1_3 :begin							//small one
 						
-						if(count_next = 8'hC0)			// Bomb Explosion Animation Timing 3
+						if(count_next == 8'hC0)			// Bomb Explosion Animation Timing 3
 							begin
 								next_state = Continue;
 							end
@@ -137,7 +137,7 @@ always_comb
 					 
 			Bomb2 :begin
 						
-						if(count_next = 8'hFF)			//Bomb Explosion Timer Waiting
+						if(count_next == 8'hFF)			//Bomb Explosion Timer Waiting
 							begin
 								next_state = Explode2_1;
 							end
@@ -147,7 +147,7 @@ always_comb
 					 
 			Explode2_1 :begin
 						
-						if(count_next = 8'h40)			// Bomb Explosion Animation Timing 1
+						if(count_next == 8'h40)			// Bomb Explosion Animation Timing 1
 							begin
 								next_state = Explode2_2;
 							end
@@ -157,7 +157,7 @@ always_comb
 					 
 			Explode2_2 :begin
 						
-						if(count_next = 8'h80)			// Bomb Explosion Animation Timing 2
+						if(count_next == 8'h80)			// Bomb Explosion Animation Timing 2
 							begin
 								next_state = Explode2_3;
 							end
@@ -167,7 +167,7 @@ always_comb
 					 
 			Explode2_3 :begin
 						
-						if(count_next = 8'hC0)			// Bomb Explosion Animation Timing 3
+						if(count_next == 8'hC0)			// Bomb Explosion Animation Timing 3
 							begin
 								next_state = Continue;
 							end

@@ -55,8 +55,8 @@ always_ff @(posedge Reset or posedge frame_clk)
         begin 
             User_Y_Motion <= 10'd0; //User X Motion;
 				User_X_Motion <= 10'd0; //User Y Motion;
-				User_Y_Pos <= User_Y_Max - 32;
-				User_X_Pos <= User_X_Max - 32;
+				User_Y_Pos <= User_Y_Max - 25;
+				User_X_Pos <= User_X_Max - 25;
 				bomb_drop = 1'b0;
 				wall_T = 1'b0;
 				wall_B = 1'b0;

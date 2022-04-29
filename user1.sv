@@ -44,8 +44,8 @@ always_ff @(posedge Reset or posedge frame_clk)
         begin 
             User_Y_Motion <= 10'd0; //User X Motion;
 				User_X_Motion <= 10'd0; //User Y Motion;
-				User_Y_Pos <= 34;
-				User_X_Pos <= 34;
+				User_Y_Pos <= User_Y_Min + 3;
+				User_X_Pos <= User_X_Min + 7;
 				bomb_drop <= 1'b0;
 				wall_T <= 1'b0;
 				wall_B <= 1'b0;
@@ -167,8 +167,8 @@ always_ff @(posedge Reset or posedge frame_clk)
 				 
 				 if(bomb_flag)
 					begin
-						User_Y_Pos <= 34;
-						User_X_Pos <= 34;
+						User_Y_Pos <= User_Y_Min + 3;
+						User_X_Pos <= User_X_Min + 7;
 						User_X_Motion <= User_X_Step - 1;
 						User_Y_Motion <= User_Y_Step - 1;
 					end
