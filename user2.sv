@@ -14,9 +14,11 @@ output logic [9:0] userX, userY
 ); 
 
 
-logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size;
+logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, User_Y_Size, User_X_Off, User_Y_Off;
 
-logic [9:0] BombX, BombY, BombXS, BombYS;
+logic [9:0] BombX, BombY, BombXS, BombYS, w_typetl, w_typetr, w_typebl, w_typebr;
+
+logic [3:0] wall_datatl, wall_databl, wall_datatr, wall_databr;
 
 logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 
@@ -45,8 +47,46 @@ logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
 	// right = 8'h4F
 	// p = 8'h13
 	
-	assign User_X_Size = 19;
-	assign User_Y_Size = 26;
+	assign User_X_Size = 20;
+	assign User_Y_Size = 27;
+	
+assign w_typetl = User_Y_Pos[9:5] * 20 + User_X_Pos[9:5];
+
+assign User_X_Off = User_X_Pos + User_X_Size;
+assign User_Y_Off = User_Y_Pos + User_Y_Size;
+
+assign w_typebr = User_Y_Off[9:5] * 20 + User_X_Off[9:5];
+
+assign w_typetr = User_Y_Pos[9:5] * 20 + User_X_Off[9:5];
+
+assign w_typebl = User_Y_Off[9:5] * 20 + User_X_Pos[9:5];
+
+
+	map checktop(
+	.address_a(w_typetl),
+	.address_b(w_typetr),
+	.clock(frame_clk),
+	.data_a(1'bX),
+	.data_b(1'bX),
+	.rden_a(1'b1),
+	.rden_b(1'b1),
+	.wren_a(1'b0),
+	.wren_b(1'b0),
+	.q_a(wall_datatl),
+	.q_b(wall_datatr));
+	
+	map checkbot(
+	.address_a(w_typebl),
+	.address_b(w_typebr),
+	.clock(frame_clk),
+	.data_a(1'bX),
+	.data_b(1'bX),
+	.rden_a(1'b1),
+	.rden_b(1'b1),
+	.wren_a(1'b0),
+	.wren_b(1'b0),
+	.q_a(wall_databl),
+	.q_b(wall_databr));
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -91,43 +131,90 @@ always_ff @(posedge Reset or posedge frame_clk)
 					  wall_R <= 1'b1;
 					  
 				//Bomb Reset
-				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos > BombY))
-					begin
-						bomb_flag <= 1'b1;
-					end
-				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos+ User_Y_Size <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos + User_Y_Size > BombY))
-					begin
-						bomb_flag <= 1'b1;
-					end
-				 else if ((User_X_Pos + User_X_Size <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos > BombY))
-					begin
-						bomb_flag <= 1'b1;
-					end
-				 else if ((User_X_Pos + User_X_Size <= BombX + BombXS) && (User_Y_Pos + User_Y_Size <= BombY + BombYS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos + User_Y_Size > BombY))
-					begin
-						bomb_flag <= 1'b1;
-					end
+//				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos > BombY))
+//					begin
+//						bomb_flag <= 1'b1;
+//					end
+//				 else if ((User_X_Pos <= BombX + BombXS) && (User_Y_Pos+ User_Y_Size <= BombY + BombYS) && (User_X_Pos > BombX) && (User_Y_Pos + User_Y_Size > BombY))
+//					begin
+//						bomb_flag <= 1'b1;
+//					end
+//				 else if ((User_X_Pos + User_X_Size <= BombX + BombXS) && (User_Y_Pos <= BombY + BombYS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos > BombY))
+//					begin
+//						bomb_flag <= 1'b1;
+//					end
+//				 else if ((User_X_Pos + User_X_Size <= BombX + BombXS) && (User_Y_Pos + User_Y_Size <= BombY + BombYS) && (User_X_Pos + User_X_Size > BombX) && (User_Y_Pos + User_Y_Size > BombY))
+//					begin
+//						bomb_flag <= 1'b1;
+//					end
 					  
 					//Wall Check	
 			
-				else if (((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+//				else if (((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+//					begin
+//						wall_L <= 1'b1;
+//					end
+//					
+//				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+//					begin
+//						wall_B <= 1'b1;
+//					end
+//					
+//				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+//					begin
+//						wall_T <= 1'b1;
+//					end
+//					
+//				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+//					begin
+//						wall_R <= 1'b1;
+//					end
+					
+				else if(wall_databl == 3'b010 || wall_databl == 3'b001)		//UserX and UserY hitting Bricks
 					begin
-						wall_L <= 1'b1;
+						if(User_X_Motion != 1'b0)	//Sprite is going left
+							begin
+								wall_R <= 1'b1;
+							end
+						else if(User_Y_Motion != 1'b0) //Sprite is going up
+							begin
+								wall_T <= 1'b1;
+							end
+					end
+				else if(wall_datatl == 3'b010 || wall_datatl == 3'b001)		//UserX and UserY hitting Bricks
+					begin
+						if(User_X_Motion != 1'b0)	//Sprite is going left
+							begin
+								wall_R <= 1'b1;
+							end
+						else if(User_Y_Motion != 1'b0) //Sprite is going up
+							begin
+								wall_B <= 1'b1;
+							end
 					end
 					
-				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+				else if(wall_databr == 3'b010 || wall_databr == 3'b001)		//UserX and UserY hitting Bricks
 					begin
-						wall_B <= 1'b1;
+						if(User_X_Motion != 1'b0)	//Sprite is going left
+							begin
+								wall_L <= 1'b1;
+							end
+						else if(User_Y_Motion != 1'b0) //Sprite is going up
+							begin
+								wall_T <= 1'b1;
+							end
 					end
 					
-				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+				else if(wall_datatr == 3'b010 || wall_datatr == 3'b001)		//UserX and UserY hitting Bricks
 					begin
-						wall_T <= 1'b1;
-					end
-					
-				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
-					begin
-						wall_R <= 1'b1;
+						if(User_X_Motion != 1'b0)	//Sprite is going left
+							begin
+								wall_L <= 1'b1;
+							end
+						else if(User_Y_Motion != 1'b0) //Sprite is going up
+							begin
+								wall_B <= 1'b1;
+							end
 					end
 					  
 				 else 
@@ -187,26 +274,26 @@ always_ff @(posedge Reset or posedge frame_clk)
 					end				 
 					else if(wall_T)
 					begin
-						User_Y_Pos <= User_Y_Pos - 2;
+						User_Y_Pos <= User_Y_Pos - 1;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
 					end 
 				else if(wall_L)
 					begin
 						User_Y_Pos <= User_Y_Pos;
-						User_X_Pos <= User_X_Pos - 2;
+						User_X_Pos <= User_X_Pos - 1;
 						User_X_Motion <= User_X_Step - 1;
 
 					end 
 					else if(wall_R)
 					begin
 						User_Y_Pos <= User_Y_Pos;
-						User_X_Pos <= User_X_Pos + 2;
+						User_X_Pos <= User_X_Pos + 1;
 						User_X_Motion <= User_X_Step - 1;
 						end 
 					else if(wall_B)
 					begin
-						User_Y_Pos <= User_Y_Pos + 2;
+						User_Y_Pos <= User_Y_Pos + 1;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
 

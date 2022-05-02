@@ -4,20 +4,20 @@
  *
  */
 
-module  user2_ram
+module  wall_ram
 (
 		input [18:0] read_address,
 		input we, Clk,
 
-		output logic [2:0] data_Out
+		output logic [1:0] data_Out
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [2:0] mem [0:539];
+logic [1:0] mem [0:1023];
 
 initial
 begin
-	 $readmemh("user2.txt", mem);
+	 $readmemh("wall.txt", mem);
 end
 
 

@@ -103,18 +103,18 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 //	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
 //	assign HEX3[7] = 1'b1;
 //	
-//	HexDriver hex_driver1 (wall_onsig, HEX1[6:0]);
-//	assign HEX1[7] = 1'b1;
-//	
-//	HexDriver hex_driver0 (user1_onsig, HEX0[6:0]);
-//	assign HEX0[7] = 1'b1;
-//	
-//	
+	HexDriver hex_driver1 (wall_outhex, HEX1[6:0]);
+	assign HEX1[7] = 1'b1;
+	
+	HexDriver hex_driver0 (user1xsig[8:5], HEX0[6:0]);
+	assign HEX0[7] = 1'b1;
+	
+	
 	
 	//fill in the hundreds digit as well as the negative sign
 	//assign HEX1 = {1'b1, ~signs[1], 3'b111, ~hundreds[1], ~hundreds[1], 1'b1};
-	assign HEX0 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
-	assign HEX1 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+//	assign HEX0 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+//	assign HEX1 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	assign HEX2 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	assign HEX3 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	//assign HEX4 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
@@ -138,6 +138,9 @@ logic [9:0] user1xsig, user1ysig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysiz
 logic [9:0] user2xsig, user2ysig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
 
 logic [4:0] game_statesig;
+logic [3:0] bomb1_statesig, bomb2_statesig;
+
+logic [3:0] wall_outhex, wall2_outhex;
 
 logic begin_pixel;
 
@@ -180,13 +183,25 @@ logic begin_pixel;
 	 );
 	 
 	 
+
+bombstate_machine bomb1states(.Reset(Reset_h),
+										.Clk(VGA_VS),
+										.bomb_exist(bomb1_exist),
+										.state(bomb1_statesig),
+										.count_out(counter));
+	 
+bombstate_machine bomb2states(.Reset(Reset_h),
+										.Clk(VGA_VS),
+										.bomb_exist(bomb2_exist),
+										.state(bomb2_statesig));
+										
 state_machine fsm(.Reset(Reset_h), 
 					  .Clk(VGA_VS),
 					  .keycode(keycode),
 					  .p1die(collide1),
 					  .p2die(collide2),
 					  .state(game_statesig),
-					  .count_out(counter));
+					  );
 					  
 vga_controller vgacontrol(.Reset(Reset_h), 
 								  .Clk(MAX10_CLK1_50), 
@@ -213,6 +228,8 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .bomb2XS(bomb2xsizesig),
 							 .bomb2YS(bomb2ysizesig), 
 							 .game_state(game_statesig),
+							 .bomb1_state(bomb1_statesig),
+							 .bomb2_state(bomb2_statesig),
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig),
 							 .Red(Red), 
@@ -231,7 +248,8 @@ user1 player1(.Reset(Reset_h),
 					  .userX(user1xsig),
 					  .userY(user1ysig),
 					  .bomb_drop(p1bomb),
-					  .collide(collide1));
+					  .collide(collide1),
+					  .wall_out(wall_outhex));
 					  
 user2 player2(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
@@ -246,10 +264,10 @@ user2 player2(.Reset(Reset_h),
 					  .bomb_drop(p2bomb),
 					  .collide(collide2));
 
-bomb player1_bomb(.Reset(Reset_h), 
+bomb1 player1_bomb(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
 					  .make(p1bomb),
-					  .explode(collide2),
+					  .bomb_state(bomb1_statesig),
 					  .userX(user1xsig),
 					  .userY(user1ysig),		
 					  
@@ -259,10 +277,10 @@ bomb player1_bomb(.Reset(Reset_h),
 					  .bombX(bomb1xsig),
 					  .bombY(bomb1ysig));
 
-bomb player2_bomb(.Reset(Reset_h), 
+bomb2 player2_bomb(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
 					  .make(p2bomb),
-					  .explode(collide1),
+					  .bomb_state(bomb2_statesig),
 					  .userX(user2xsig),
 					  .userY(user2ysig),		
 					  

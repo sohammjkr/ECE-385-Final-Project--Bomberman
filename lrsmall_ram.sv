@@ -4,7 +4,7 @@
  *
  */
 
-module  user2_ram
+module  lrsmall_ram
 (
 		input [18:0] read_address,
 		input we, Clk,
@@ -13,11 +13,11 @@ module  user2_ram
 );
 
 // mem has width of 3 bits and a total of 400 addresses
-logic [2:0] mem [0:539];
+logic [2:0] mem [0:1023];
 
 initial
 begin
-	 $readmemh("user2.txt", mem);
+	 $readmemh("lrsmall.txt", mem);
 end
 
 
