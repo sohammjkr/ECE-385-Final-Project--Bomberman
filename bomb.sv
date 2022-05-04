@@ -59,7 +59,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 				make_bomb <= 1'b0;
 			  end
 			 	
-			if(bomb_check && bomb_state = 5'b00011) 
+			if(bomb_check && bomb_state == 5'b00011) 
 			 begin
 				bomb_check <= 1'b0;
 				make_bomb <= 1'b0;

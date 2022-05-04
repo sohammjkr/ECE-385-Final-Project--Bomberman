@@ -12,7 +12,8 @@ input logic [9:0] die_addr [10],
 
 output logic bomb_drop, collide,
 output logic [9:0] userX, userY,
-output logic [3:0] wall_out
+output logic [3:0] wall_out, 
+output logic [2:0] live_count 
 ); 
 
 
@@ -22,7 +23,12 @@ logic [9:0] BombX, BombY, BombXS, BombYS, w_typetl, w_typetr, w_typebl, w_typebr
 
 logic [3:0] wall_datatl, wall_databl, wall_datatr, wall_databr;
 
-logic	bomb_flag, wall_L, wall_R, wall_T, wall_B;
+logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, die_flag;
+
+logic [2:0] death_count;
+
+
+
 
 	assign BombX = bomb2X;
 	assign BombY = bomb2Y;
@@ -93,6 +99,9 @@ always_ff @(posedge Reset or posedge frame_clk)
 				wall_B <= 1'b0;
 				wall_R <= 1'b0;
 				wall_L <= 1'b0;
+				bomb_flag <= 1'b0;
+				die_flag <= 1'b0;
+				death_count <= 3'b000;
 		  end
 
 	  else if(allow == 5'b00000 || allow == 5'b00001 || allow == 5'b11111)
@@ -139,10 +148,14 @@ always_ff @(posedge Reset or posedge frame_clk)
 //						bomb_flag <= 1'b1;
 //					end	
 
+					
+
 
 					else if (w_typetl == die_addr[5] || w_typetl == die_addr[6] || w_typetl == die_addr[7] || w_typetl == die_addr[8] || w_typetl == die_addr[9] || w_typetr == die_addr[5] || w_typetr == die_addr[6] || w_typetr == die_addr[7] || w_typetr == die_addr[8] || w_typetr == die_addr[9] || w_typetr == die_addr[5] || w_typetr == die_addr[6] || w_typetr == die_addr[7] || w_typetr == die_addr[8] || w_typetr == die_addr[9] || w_typebl == die_addr[5] || w_typebl == die_addr[6] || w_typebl == die_addr[7] || w_typebl == die_addr[8] || w_typebl == die_addr[9] || w_typebr == die_addr[5] || w_typebr == die_addr[6] || w_typebr == die_addr[7] || w_typebr == die_addr[8] || w_typebr == die_addr[9])
 					begin
+						
 						bomb_flag <= 1'b1;
+						
 					end
 					
 					else if (w_typetl == die_addr[0] || w_typetl == die_addr[1] || w_typetl == die_addr[2] || w_typetl == die_addr[3] || w_typetl == die_addr[4] || w_typetr == die_addr[0] || w_typetr == die_addr[1] || w_typetr == die_addr[2] || w_typetr == die_addr[3] || w_typetr == die_addr[4] || w_typetr == die_addr[0] || w_typetr == die_addr[1] || w_typetr == die_addr[2] || w_typetr == die_addr[3] || w_typetr == die_addr[4] || w_typebl == die_addr[0] || w_typebl == die_addr[1] || w_typebl == die_addr[2] || w_typebl == die_addr[3] || w_typebl == die_addr[4] || w_typebr == die_addr[0] || w_typebr == die_addr[1] || w_typebr == die_addr[2] || w_typebr == die_addr[3] || w_typebr == die_addr[4])
@@ -229,12 +242,13 @@ always_ff @(posedge Reset or posedge frame_clk)
 					  wall_R <= 1'b0;
 					  wall_L <= 1'b0;
 					  User_Y_Motion <= User_Y_Motion;  // User is somewhere in the middle, don't bounce, just keep moving
-					  
+					  die_flag <= 1'b0;
 				 case (keycode)
 					8'h04 : begin
 								User_X_Motion <= -1;//A
 								User_Y_Motion<= 0;
 								bomb_drop <= 1'b0;
+								die_flag <= 1'b0;
 							  end
 					        
 					8'h07 : begin
@@ -242,6 +256,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 					        User_X_Motion <= 1;//D
 							  User_Y_Motion <= 0;
 							  bomb_drop <= 1'b0;
+							  die_flag <= 1'b0;
 							  end
 
 							  
@@ -250,16 +265,19 @@ always_ff @(posedge Reset or posedge frame_clk)
 					        User_Y_Motion <= 1;//S
 							  User_X_Motion <= 0;
 							  bomb_drop <= 1'b0;
+							  die_flag <= 1'b0;
 							 end
 							  
 					8'h1A : begin
 					        User_Y_Motion <= -1;//W
 							  User_X_Motion <= 0;
 							  bomb_drop <= 1'b0;
+							  die_flag <= 1'b0;
 							 end	  
 							 
 					8'h19 : begin
 								bomb_drop <= 1'b1;
+								die_flag <= 1'b0;
 							  end
 					default: ;
 			   endcase
@@ -271,18 +289,28 @@ always_ff @(posedge Reset or posedge frame_clk)
 						User_X_Pos <= User_X_Min + 7;
 						User_X_Motion <= User_X_Step - 1;
 						User_Y_Motion <= User_Y_Step - 1;
+						death_count <= death_count + 1'b1;
+						die_flag <= 1'b0;
 					end
+					
+				else if(death_count >= 3'b110)
+						begin
+						
+							die_flag <= 1'b1;
+						end
 				 else if(wall_T)
 					begin
 						User_Y_Pos <= User_Y_Pos - 1;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
+						die_flag <= 1'b0;
 					end 
 				else if(wall_L)
 					begin
 						User_Y_Pos <= User_Y_Pos;
 						User_X_Pos <= User_X_Pos - 1;
 						User_X_Motion <= User_X_Step - 1;
+						die_flag <= 1'b0;
 
 					end 
 					else if(wall_R)
@@ -290,18 +318,21 @@ always_ff @(posedge Reset or posedge frame_clk)
 						User_Y_Pos <= User_Y_Pos;
 						User_X_Pos <= User_X_Pos + 1;
 						User_X_Motion <= User_X_Step - 1;
+						die_flag <= 1'b0;
 						end 
 					else if(wall_B)
 					begin
 						User_Y_Pos <= User_Y_Pos + 1;
 						User_X_Pos <= User_X_Pos;
 						User_Y_Motion <= User_Y_Step - 1;
+						die_flag <= 1'b0;
 
 					end
 				else
 					begin
 						User_Y_Pos <= (User_Y_Pos + User_Y_Motion);  // Update User position
 						User_X_Pos <= (User_X_Pos + User_X_Motion);
+						die_flag <= 1'b0;
 
 					end
 			end
@@ -309,6 +340,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 		
 	assign userY = User_Y_Pos;
 	assign userX = User_X_Pos;
-	assign collide = bomb_flag;
+	assign live_count = (3'b110 - death_count) / 2;
+	assign collide = die_flag;
 	
 endmodule

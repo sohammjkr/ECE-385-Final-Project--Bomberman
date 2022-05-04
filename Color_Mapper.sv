@@ -20,7 +20,7 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 							  input logic [0:0] explode_flag [10],
 							  input logic [3:0] explode_data [10],
 							  input		   [9:0] DrawX, DrawY,
-							  input			Clk, blank, 
+							  input			Clk, blank, Reset,
 							  
 							  output logic [9:0] die_addr [10],
                        output logic [7:0]  Red, Green, Blue);
@@ -929,7 +929,7 @@ always_ff @(posedge Clk)
     begin 
 
 			//User 1 display
-        if ((user1DistX < 10'd20 && user1DistY < 10'd27) && ((user1DistX >= 10'd2 && user1DistY >= 10'd2))) 
+        if (((user1DistX < 10'd20 && user1DistY < 10'd27) && ((user1DistX >= 10'd2 && user1DistY >= 10'd2)) && user1_data != 4'h0)) 
 				begin
 					user1_on = 1'b1;
 				end
@@ -941,7 +941,7 @@ always_ff @(posedge Clk)
 
 			
 				//Bomb 1 Display
-		  if ((bomb1DistX <= 10'd15 && bomb1DistY <= 10'd18) && ((bomb1DistX >= 10'd2 && bomb1DistY >= 10'd0))) 
+		  if (((bomb1DistX <= 10'd15 && bomb1DistY <= 10'd18) && ((bomb1DistX >= 10'd2 && bomb1DistY >= 10'd0))) && (bomb1_data != 4'h1)) 
 			begin
             bomb1_on = 1'b1;
 			end
@@ -952,7 +952,7 @@ always_ff @(posedge Clk)
 			end
 			
 			// User 2 Display
-			if ((user2DistX < 10'd20 && user2DistY < 10'd27) && ((user2DistX >= 10'd2 && user2DistY >= 10'd0)))  
+			if (((user2DistX < 10'd20 && user2DistY < 10'd27) && ((user2DistX >= 10'd2 && user2DistY >= 10'd0))) && user2_data != 4'h0) 
 			begin
             user2_on = 1'b1;
 			end
@@ -963,7 +963,7 @@ always_ff @(posedge Clk)
 			end
 		
 			//Bomb 2 Display
-		  if ((bomb2DistX <= 10'd15 && bomb2DistY <= 10'd18) && ((bomb2DistX >= 10'd2 && bomb2DistY >= 10'd0))) 
+		  if (((bomb2DistX <= 10'd15 && bomb2DistY <= 10'd18) && ((bomb2DistX >= 10'd2 && bomb2DistY >= 10'd0))) && (bomb2_data != 4'h1))
 			begin
             bomb2_on = 1'b1;
 			end
@@ -979,7 +979,31 @@ end
 
  always_ff @ (posedge Clk)
     begin:RGB_Display
-       
+	 
+	 if(Reset)
+		begin
+				die_addr[0] <= 10'd300;
+				die_addr[1] <= 10'd300;
+				die_addr[2] <= 10'd300;
+				die_addr[3] <= 10'd300;
+				die_addr[4] <= 10'd300;
+				die_addr[5] <= 10'd300;
+				die_addr[6] <= 10'd300;
+				die_addr[7] <= 10'd300;
+				die_addr[8] <= 10'd300;
+				die_addr[9] <= 10'd300;
+				Red <= startR;
+				Green <= startG;
+				Blue <= startB;
+		
+		
+		
+		
+		end
+    else
+	 
+		begin
+		
 	  if(blank && DrawX > 1'b1)
 		begin
 		
@@ -1031,7 +1055,17 @@ end
 		
 		else if (game_state == 5'b10000)							//P1 Win State
 			begin		
+				die_addr[0] <= 10'd300;
+				die_addr[1] <= 10'd300;
+				die_addr[2] <= 10'd300;
+				die_addr[3] <= 10'd300;
+				die_addr[4] <= 10'd300;
 				
+				die_addr[6] <= 10'd300;
+				die_addr[7] <= 10'd300;
+				die_addr[8] <= 10'd300;
+				die_addr[9] <= 10'd300;
+				die_addr[5] <= 10'd300;
 				if(DrawX >= 10'd210 && DrawY >= 10'd232 && DrawX < 10'd430 && DrawY < 10'd248)
 					begin
 						Red <= win1R;
@@ -1049,7 +1083,17 @@ end
 			
 		else if (game_state == 5'b10001)							//P2 Win State
 			begin
+				die_addr[6] <= 10'd300;
+				die_addr[7] <= 10'd300;
+				die_addr[8] <= 10'd300;
+				die_addr[9] <= 10'd300;
+				die_addr[5] <= 10'd300;
 				
+				die_addr[0] <= 10'd300;
+				die_addr[1] <= 10'd300;
+				die_addr[2] <= 10'd300;
+				die_addr[3] <= 10'd300;
+				die_addr[4] <= 10'd300;
 				if(DrawX >= 10'd210 && DrawY >= 10'd232 && DrawX < 10'd430 && DrawY < 10'd248)
 					begin
 						Red <= win2R;
@@ -1153,6 +1197,38 @@ else 															//continue State
 						Blue <= LREXB;
 					end
 		
+		  else if(bomb1_state == 4'b0101 )
+			begin
+				die_addr[0] <= 10'd300;
+				die_addr[1] <= 10'd300;
+				die_addr[2] <= 10'd300;
+				die_addr[3] <= 10'd300;
+				die_addr[4] <= 10'd300;
+
+				Red <= EXR;
+				Green <= EXG;
+				Blue <= EXB;
+				
+			end
+
+		  
+		  else if(bomb2_state == 4'b0101)
+			begin
+				die_addr[5] <= 10'd300;
+				die_addr[6] <= 10'd300;
+				die_addr[7] <= 10'd300;
+				die_addr[8] <= 10'd300;
+				die_addr[9] <= 10'd300;
+				
+				Red <= EXR;
+				Green <= EXG;
+				Blue <= EXB;
+				
+			end
+		  
+		  
+		  
+		  
 		  else if((wall_data == 4'b0010))
 			begin
 				
@@ -1228,7 +1304,7 @@ else 															//continue State
             Blue <= 8'h00;
 
         end 
-		
+		end
     end 
     
 endmodule 

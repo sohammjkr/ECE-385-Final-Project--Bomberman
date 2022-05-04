@@ -94,19 +94,19 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	assign ARDUINO_IO[6] = 1'b1;
 	
 	//HEX drivers to convert numbers to HEX output
-	HexDriver hex_driver5 (counter[7:4], HEX5[6:0]);
+	HexDriver hex_driver5 (lives1, HEX5[6:0]);
 	assign HEX5[7] = 1'b1;
 	
-	HexDriver hex_driver4 (counter[3:0], HEX4[6:0]);
-	assign HEX4[7] = 1'b1;
+//	HexDriver hex_driver4 (counter[3:0], HEX4[6:0]);
+//	assign HEX4[7] = 1'b1;
 //	
 //	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
 //	assign HEX3[7] = 1'b1;
 //	
-	HexDriver hex_driver1 (bomb1xsig[8:5], HEX1[6:0]);
-	assign HEX1[7] = 1'b1;
+//	HexDriver hex_driver1 (bomb1xsig[8:5], HEX1[6:0]);
+//	assign HEX1[7] = 1'b1;
 	
-	HexDriver hex_driver0 (ex_flag[4], HEX0[6:0]);
+	HexDriver hex_driver0 (lives2, HEX0[6:0]);
 	assign HEX0[7] = 1'b1;
 	
 	
@@ -114,10 +114,10 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	//fill in the hundreds digit as well as the negative sign
 	//assign HEX1 = {1'b1, ~signs[1], 3'b111, ~hundreds[1], ~hundreds[1], 1'b1};
 //	assign HEX0 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
-//	assign HEX1 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+	assign HEX1 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	assign HEX2 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	assign HEX3 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
-	//assign HEX4 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
+	assign HEX4 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	//assign HEX5 = {1'b1, ~signs[0], 3'b111, ~hundreds[0], ~hundreds[0], 1'b1};
 	
 	//Assign one button to reset
@@ -141,15 +141,9 @@ logic [4:0] game_statesig;
 logic [3:0] bomb1_statesig, bomb2_statesig;
 
 logic [3:0] wall_outhex, wall2_outhex;
-
-logic [0:0] ex_flag [10];
-
-logic [9:0] ex_addr [10];
+logic [2:0] lives1, lives2;
 
 logic [9:0] dieaddr [10];
-
-
-logic [3:0] ex_data [10];
 
 
 logic begin_pixel;
@@ -190,21 +184,7 @@ logic begin_pixel;
 		.hex_digits_export({dummy1, dummy2, dummy3, dummy4}),
 		.leds_export({hundreds, signs, LEDR}),
 		.keycode_export(keycode)
-	 );
-	 
-	 
-bomb_explode boardlogic(.Reset(Reset_h),
-								.Clk(VGA_VS),
-								.bomb1_state(bomb1_statesig),
-								.bomb2_state(bomb2_statesig),
-								.bomb1X(bomb1xsig),
-								.bomb1Y(bomb1ysig),
-								.bomb2X(bomb2xsig),
-								.bomb2Y(bomb2ysig),
-								.explode_addr(ex_addr),
-								.explode_flag(ex_flag),
-								.explode_data(ex_data));
-								
+	 ); 
 	 
 	 
 bombstate_machine bomb1states(.Reset(Reset_h),
@@ -237,6 +217,7 @@ vga_controller vgacontrol(.Reset(Reset_h),
 								  
 color_mapper colormap(.Clk(VGA_Clk),
 							 .blank(blank),
+							 .Reset(Reset_h),
 							 .user1X(user1xsig), 
 							 .user1Y(user1ysig), 
 							 .user2X(user2xsig), 
@@ -254,9 +235,6 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .bomb2_state(bomb2_statesig),
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig),
-							 .explode_addr(ex_addr),
-							 .explode_flag(ex_flag),
-							 .explode_data(ex_data),
 							 .die_addr(dieaddr),
 							 .Red(Red), 
 							 .Green(Green), 
@@ -276,7 +254,8 @@ user1 player1(.Reset(Reset_h),
 					  .userY(user1ysig),
 					  .bomb_drop(p1bomb),
 					  .collide(collide1),
-					  .wall_out(wall_outhex));
+					  .wall_out(wall_outhex),
+					  .live_count(lives1));
 					  
 user2 player2(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
@@ -290,7 +269,8 @@ user2 player2(.Reset(Reset_h),
 					  .userX(user2xsig),
 					  .userY(user2ysig),
 					  .bomb_drop(p2bomb),
-					  .collide(collide2));
+					  .collide(collide2), 
+					  .live_count(lives2));
 
 bomb1 player1_bomb(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
@@ -317,8 +297,6 @@ bomb1 player2_bomb(.Reset(Reset_h),
 					  .bombYS(bomb2ysizesig),
 					  .bombX(bomb2xsig),
 					  .bombY(bomb2ysig));
-					  
-
-					  
+					  			  
 
 endmodule 
