@@ -178,10 +178,7 @@ always_comb
 						
 						if(count_next == 8'hFF)
 							begin
-								if(keycode == 8'h1F)
-									begin
-										next_state = Start1;
-									end
+								next_state = Start1;
 							end
 						else 
 							begin
@@ -193,10 +190,8 @@ always_comb
 						
 						if(count_next == 8'hFF)
 							begin
-								if(keycode == 8'h1F)
-									begin
-										next_state = Start1;
-									end
+								next_state = Start1;
+									
 							end
 						else 
 							begin

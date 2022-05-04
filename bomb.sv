@@ -2,14 +2,17 @@
 
 // making and dropping bombs?
 
-module bomb(
+module bomb2(
 
-input logic Reset, frame_clk, make, explode,
+input logic Reset, frame_clk, make,
 input logic [9:0] userX, userY,
+input logic [4:0] bomb_state,
 
 output logic bomb_check,
 output logic [9:0] bombX, bombY, bombXS, bombYS
 );
+
+
 
 
 
@@ -28,8 +31,8 @@ assign explode_check = explode;
     parameter [9:0] Bomb_X_Step=1;      // Step size on the X axis
     parameter [9:0] Bomb_Y_Step=1;      // Step size on the Y axis	
 
-assign Bomb_X_Size = 20;
-assign Bomb_Y_Size = 25;
+assign Bomb_X_Size = 15;
+assign Bomb_Y_Size = 20;
 
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -56,7 +59,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 				make_bomb <= 1'b0;
 			  end
 			 	
-			if(explode_check && bomb_check) 
+			if(bomb_check && bomb_state = 5'b00011) 
 			 begin
 				bomb_check <= 1'b0;
 				make_bomb <= 1'b0;
@@ -70,7 +73,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 					Bomb_X_Pos <= userX + 4;
 					Bomb_Y_Pos <= userY + 4;
 				end
-				
+			if(bomb_state = 5'b
 
 		end	 
 	end
