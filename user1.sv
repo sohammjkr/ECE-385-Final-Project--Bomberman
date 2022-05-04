@@ -8,6 +8,7 @@ input logic Reset, frame_clk,
 input logic [7:0] keycode,
 input logic [4:0] allow,
 input logic [9:0] bomb2X, bomb2Y, bomb2XS, bomb2YS,
+input logic [9:0] die_addr [10],
 
 output logic bomb_drop, collide,
 output logic [9:0] userX, userY,
@@ -137,7 +138,18 @@ always_ff @(posedge Reset or posedge frame_clk)
 //					begin
 //						bomb_flag <= 1'b1;
 //					end	
-					  
+
+
+					else if (w_typetl == die_addr[5] || w_typetl == die_addr[6] || w_typetl == die_addr[7] || w_typetl == die_addr[8] || w_typetl == die_addr[9] || w_typetr == die_addr[5] || w_typetr == die_addr[6] || w_typetr == die_addr[7] || w_typetr == die_addr[8] || w_typetr == die_addr[9] || w_typetr == die_addr[5] || w_typetr == die_addr[6] || w_typetr == die_addr[7] || w_typetr == die_addr[8] || w_typetr == die_addr[9] || w_typebl == die_addr[5] || w_typebl == die_addr[6] || w_typebl == die_addr[7] || w_typebl == die_addr[8] || w_typebl == die_addr[9] || w_typebr == die_addr[5] || w_typebr == die_addr[6] || w_typebr == die_addr[7] || w_typebr == die_addr[8] || w_typebr == die_addr[9])
+					begin
+						bomb_flag <= 1'b1;
+					end
+					
+					else if (w_typetl == die_addr[0] || w_typetl == die_addr[1] || w_typetl == die_addr[2] || w_typetl == die_addr[3] || w_typetl == die_addr[4] || w_typetr == die_addr[0] || w_typetr == die_addr[1] || w_typetr == die_addr[2] || w_typetr == die_addr[3] || w_typetr == die_addr[4] || w_typetr == die_addr[0] || w_typetr == die_addr[1] || w_typetr == die_addr[2] || w_typetr == die_addr[3] || w_typetr == die_addr[4] || w_typebl == die_addr[0] || w_typebl == die_addr[1] || w_typebl == die_addr[2] || w_typebl == die_addr[3] || w_typebl == die_addr[4] || w_typebr == die_addr[0] || w_typebr == die_addr[1] || w_typebr == die_addr[2] || w_typebr == die_addr[3] || w_typebr == die_addr[4])
+					begin
+						bomb_flag<= 1'b1;
+					end
+					
 					//Wall Check
 					
 //				else if (((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
@@ -207,7 +219,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 							end
 					end
 							
-				else	 
+				else 
 					begin
 
 					  bomb_flag <= 1'b0;
@@ -290,6 +302,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 					begin
 						User_Y_Pos <= (User_Y_Pos + User_Y_Motion);  // Update User position
 						User_X_Pos <= (User_X_Pos + User_X_Motion);
+
 					end
 			end
 		end

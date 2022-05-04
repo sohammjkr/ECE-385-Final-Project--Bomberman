@@ -14,7 +14,7 @@ module state_machine (input logic Clk, Reset,
     begin
         if (Reset) begin
 			//Start is "Hit Space to Begin"
-            curr_state <= Start1;
+            curr_state <= Continue;
 				count <= 8'h00;
 			end
 			

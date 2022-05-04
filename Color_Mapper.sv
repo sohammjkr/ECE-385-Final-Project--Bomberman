@@ -16,9 +16,13 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 							  input 			[9:0] user2X, user2Y, bomb2X, bomb2Y, bomb2XS, bomb2YS, //User2 sprite and bomb position
 							  input	logic [4:0] game_state,
 							  input  logic [3:0] bomb1_state, bomb2_state,
+							  input logic [9:0] explode_addr [10],
+							  input logic [0:0] explode_flag [10],
+							  input logic [3:0] explode_data [10],
 							  input		   [9:0] DrawX, DrawY,
 							  input			Clk, blank, 
 							  
+							  output logic [9:0] die_addr [10],
                        output logic [7:0]  Red, Green, Blue);
 							  
   logic user1_on, bomb1_on, user2_on, bomb2_on, p1w_data, p2w_data;
@@ -28,7 +32,7 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 	 logic [7:0] startR, startG, startB, pauseR, pauseG, pauseB;
  	 logic [7:0] WallR, WallG, WallB, BrickR, BrickG, BrickB;
   	 logic [7:0] SPPUR, SPPUG, SPPUB, BOPUR, BOPUG, BOPUB;
-	 logic [7:0] EXR, EXG, EXB;
+	 logic [7:0] EXR, EXG, EXB, LREXR, LREXG, LREXB, TBEXR, TBEXG, TBEXB;
 
 	 logic [7:0] win1R, win1G, win1B, win2R, win2G, win2B;
 
@@ -43,13 +47,13 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 	 
 	 logic [2:0] user1_data, user2_data, bomb1_data, bomb2_data, wall_color, brick_color, speedpu_color, bombpu_color;
 	 
-	 logic [2:0] cbig_color, csmall_color;
+	 logic [2:0] cbig_color, csmall_color, lrbig_color, lrsmall_color, tbbig_color, tbsmall_color;
 	 
 	 logic [1:0] pause_data;
 	 
-	 logic [9:0] w_type;
+	 logic [9:0] w_type, b_pos, b_post, b_posl, b_posr, b_posb, b2_pos, b2_post, b2_posl, b2_posr, b2_posb;
 
-    logic [3:0] wall_data, wall_temp;
+    logic [3:0] wall_data, wall_temp, wall_datal, wall_datar, wall_datat, wall_datab, wall_datac;
  
 	 
 	 int bomb1DistX, bomb1DistY, bomb1Size;
@@ -82,8 +86,20 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 	assign bomb2_addr = bomb2DistX + (15 * bomb2DistY); 
 
 	assign w_type = DrawY[9:5] * 20 + DrawX[9:5];
+	assign b_pos = bomb1Y[9:5] * 20 + bomb1X[9:5];
+	assign b_post = (bomb1Y[9:5] * 20 + bomb1X[9:5]) - 20;
+	assign b_posb = (bomb1Y[9:5] * 20 + bomb1X[9:5]) + 20;
+	assign b_posr = (bomb1Y[9:5] * 20 + bomb1X[9:5]) + 1;
+	assign b_posl = (bomb1Y[9:5] * 20 + bomb1X[9:5]) - 1;
+	
+	assign b2_pos = bomb2Y[9:5] * 20 + bomb2X[9:5];
+	assign b2_post = (bomb2Y[9:5] * 20 + bomb2X[9:5]) - 20;
+	assign b2_posb = (bomb2Y[9:5] * 20 + bomb2X[9:5]) + 20;
+	assign b2_posr = (bomb2Y[9:5] * 20 + bomb2X[9:5]) + 1;
+	assign b2_posl = (bomb2Y[9:5] * 20 + bomb2X[9:5]) - 1;
 	
 	assign wall_addr = DrawX[4:0] + (32 * DrawY[4:0]);
+	
 
 p1win_ram p1win(.read_address(pw_addr),
 								 .Clk(Clk),
@@ -131,6 +147,19 @@ map background(
 	.q_a(wall_temp),
 	.q_b(wall_data));
 	
+map write(
+	.address_a(explode_addr[0]),
+	.address_b(explode_addr[1]),
+	.clock(Clk),
+	.data_a(explode_data[0]),
+	.data_b(explode_data[1]),
+	.rden_a(1'b0),
+	.rden_b(1'b0),
+	.wren_a(1'b1),
+	.wren_b(1'b1),
+	.q_a(),
+	.q_b());
+	
 wall_ram wall_sprite(.read_address(wall_addr),
 							.Clk(Clk),
 							.data_Out(wall_color));
@@ -155,24 +184,25 @@ csmall_ram csmall_sprite(.read_address(wall_addr),
 							.Clk(Clk),
 							.data_Out(csmall_color));
 							
-//lrbig_ram cbig_sprite(.read_address(wall_addr),
-//							.Clk(Clk),
-//							.data_Out(cbig_color));
-//							
-//lrsmall_ram csmall_sprite(.read_address(wall_addr),
-//							.Clk(Clk),
-//							.data_Out(csmall_color));
-//tbbig_ram cbig_sprite(.read_address(wall_addr),
-//							.Clk(Clk),
-//							.data_Out(cbig_color));
-//							
-//tbsmall_ram csmall_sprite(.read_address(wall_addr),
-//							.Clk(Clk),
-//							.data_Out(csmall_color));						
+lrbig_ram lrbig_sprite(.read_address(wall_addr),
+							.Clk(Clk),
+							.data_Out(lrbig_color));
+							
+lrsmall_ram lrsmall_sprite(.read_address(wall_addr),
+							.Clk(Clk),
+							.data_Out(lrsmall_color));
+							
+tbbig_ram tbbig_sprite(.read_address(wall_addr),
+							.Clk(Clk),
+							.data_Out(tbbig_color));
+							
+tbsmall_ram tbsmall_sprite(.read_address(wall_addr),
+							.Clk(Clk),
+							.data_Out(tbsmall_color));						
 always_ff @(posedge Clk) 
 	begin
 	
-	if(wall_data == 3'b001)
+	if(wall_data == 4'b0001)
 		begin
 			
 		case(wall_color)
@@ -198,7 +228,8 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-	else if(wall_data == 4'b0101)
+			
+	else if((b2_pos == w_type || b_pos == w_type)  && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
 		begin
 			
 		case(csmall_color)
@@ -247,7 +278,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-	else if(wall_data == 4'b0110)
+	else if((b2_pos == w_type || b_pos == w_type) && (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
 		begin
 			
 		case(cbig_color)
@@ -288,9 +319,210 @@ always_ff @(posedge Clk)
 					 EXB <= 8'h00;
 					 end
 					 
-			default: ;
+			default: begin
+					EXR <= 8'h00;
+					EXG <= 8'ha2;
+					EXB <= 8'he8;
+					end 
 		endcase
 			end
+			
+		else if((b2_posl == w_type || b2_posr == w_type || b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
+		begin
+			
+		case(lrsmall_color)
+						
+			4'h1 : begin
+					 LREXR <= 8'hff;
+					 LREXG <= 8'hff;
+					 LREXB <= 8'hff;
+					 end
+					 
+			4'h2 : begin
+					 LREXR <= 8'hf9;
+					 LREXG <= 8'hff;
+					 LREXB <= 8'hd1;
+					 end
+					 
+			4'h3 : begin
+					 LREXR <= 8'hff;
+					 LREXG <= 8'hed;
+					 LREXB <= 8'h79;
+					 end
+					 
+			4'h4 : begin
+					 LREXR <= 8'hff;
+					 LREXG <= 8'hb6;
+					 LREXB <= 8'h2a;
+					 end
+					 
+			4'h5 : begin
+					 LREXR <= 8'hfd;
+					 LREXG <= 8'h75;
+					 LREXB <= 8'h15;
+					 end
+					 
+			4'h6 : begin
+					 LREXR <= 8'h00;
+					 LREXG <= 8'h00;
+					 LREXB <= 8'h00;
+					 end
+					 
+			default: begin
+					LREXR <= 8'h00;
+					LREXG <= 8'ha2;
+					LREXB <= 8'he8;
+					end 
+		endcase
+			end
+			
+		else if((b2_posl == w_type || b2_posr == w_type) || (b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
+		begin
+			
+		case(lrbig_color)
+						
+			4'h1 : begin
+					 LREXR <= 8'hff;
+					 LREXG <= 8'hff;
+					 LREXB <= 8'hff;
+					 end
+					 
+			4'h2 : begin
+					 LREXR <= 8'hf9;
+					 LREXG <= 8'hff;
+					 LREXB <= 8'hd1;
+					 end
+					 
+			4'h3 : begin
+					 LREXR <= 8'hff;
+					 LREXG <= 8'hed;
+					 LREXB <= 8'h79;
+					 end
+					 
+			4'h4 : begin
+					 LREXR <= 8'hff;
+					 LREXG <= 8'hb6;
+					 LREXB <= 8'h2a;
+					 end
+					 
+			4'h5 : begin
+					 LREXR <= 8'hfd;
+					 LREXG <= 8'h75;
+					 LREXB <= 8'h15;
+					 end
+					 
+			4'h6 : begin
+					 LREXR <= 8'h00;
+					 LREXG <= 8'h00;
+					 LREXB <= 8'h00;
+					 end
+					 
+			default: begin
+					LREXR <= 8'h00;
+					LREXG <= 8'ha2;
+					LREXB <= 8'he8;
+					end 
+		endcase
+			end
+			
+	else if((b2_posb == w_type || b2_post == w_type || b_posb == w_type || b_post == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
+		begin
+			
+		case(tbsmall_color)
+						
+			4'h1 : begin
+					 TBEXR <= 8'hff;
+					 TBEXG <= 8'hff;
+					 TBEXB <= 8'hff;
+					 end
+					 
+			4'h2 : begin
+					 TBEXR <= 8'hf9;
+					 TBEXG <= 8'hff;
+					 TBEXB <= 8'hd1;
+					 end
+					 
+			4'h3 : begin
+					 TBEXR <= 8'hff;
+					 TBEXG <= 8'hed;
+					 TBEXB <= 8'h79;
+					 end
+					 
+			4'h4 : begin
+					 TBEXR <= 8'hff;
+					 TBEXG <= 8'hb6;
+					 TBEXB <= 8'h2a;
+					 end
+					 
+			4'h5 : begin
+					 TBEXR <= 8'hfd;
+					 TBEXG <= 8'h75;
+					 TBEXB <= 8'h15;
+					 end
+					 
+			4'h6 : begin
+					 TBEXR <= 8'h00;
+					 TBEXG <= 8'h00;
+					 TBEXB <= 8'h00;
+					 end
+					 
+			default: begin
+					TBEXR <= 8'h00;
+					TBEXG <= 8'ha2;
+					TBEXB <= 8'he8;
+					end 
+		endcase
+			end
+			
+	else if((b2_post == w_type || b2_posb == w_type || b_posb == w_type || b_post == w_type) &&  (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
+		begin
+			
+		case(tbbig_color)
+						
+			4'h1 : begin
+					TBEXR <= 8'hff;
+					 TBEXG <= 8'hff;
+					 TBEXB <= 8'hff;
+					 end
+					 
+			4'h2 : begin
+					 TBEXR <= 8'hf9;
+					 TBEXG <= 8'hff;
+					 TBEXB <= 8'hd1;
+					 end
+					 
+			4'h3 : begin
+					 TBEXR <= 8'hff;
+					 TBEXG <= 8'hed;
+					 TBEXB <= 8'h79;
+					 end
+					 
+			4'h4 : begin
+					 TBEXR <= 8'hff;
+					 TBEXG <= 8'hb6;
+					 TBEXB <= 8'h2a;
+					 end
+					 
+			4'h5 : begin
+					 TBEXR <= 8'hfd;
+					 TBEXG <= 8'h75;
+					 TBEXB <= 8'h15;
+					 end
+					 
+			4'h6 : begin
+					 TBEXR <= 8'h00;
+					 TBEXG <= 8'h00;
+					 TBEXB <= 8'h00;
+					 end
+					 
+			default: begin
+					TBEXR <= 8'h00;
+					TBEXG <= 8'ha2;
+					TBEXB <= 8'he8;
+					end 
+		endcase
+			end
+
 	
 			
 	else if(wall_data == 3'b011)
@@ -393,7 +625,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-		else if(wall_data == 2'b10)
+		else if(wall_data == 4'b0010)
 		begin			
 		case(brick_color)
 						
@@ -836,15 +1068,92 @@ end
 else 															//continue State
 	begin
 			
-		if((wall_data == 2'b01))
+	
+		
+		
+		if((wall_data == 4'b0101) || (wall_data == 4'b0110))
+			begin
+				Red <= EXR;
+            Green <= EXG;
+            Blue <= EXB;
+			end
+			
+		else if (wall_data == 4'b0111 || wall_data == 4'b1000 || (wall_datar == 4'b0111) || wall_datal == 4'b0111 || (wall_datar == 4'b1000) || wall_datal == 4'b1000)
+			begin
+				Red <= LREXR;
+            Green <= LREXG;
+            Blue <= LREXB;
+			end
+			
+		else if (wall_data == 4'b1001 || wall_data == 4'b1010 || (wall_datat == 4'b1001) || wall_datab == 4'b1001 || (wall_datat == 4'b1010) || wall_datab == 4'b1010)
+			begin
+				Red <= TBEXR;
+            Green <= TBEXG;
+            Blue <= TBEXB;
+			end
+		else if((wall_data == 4'b0001))
 			begin
 				
 				Red <= WallR;
             Green <= WallG;
             Blue <= WallB;
 			end
-			
-		  else if((wall_data == 2'b10))
+		
+		 
+		  else if(( b_pos == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0011 || bomb1_state == 4'b0100))
+					begin
+						die_addr[4] <= b_pos;
+						Red <= EXR;
+						Green <= EXG;
+						Blue <= EXB;
+					end
+		  else if((b_posb == w_type || b_post == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b011 || bomb1_state == 4'b0100))
+					begin
+						die_addr[3] <= b_posb;
+						die_addr[2] <= b_post;
+
+						Red <= TBEXR;
+						Green <= TBEXG;
+						Blue <= TBEXB;
+					end
+		  else if((b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0011 || bomb1_state == 4'b0100))
+					begin
+						die_addr[0] <= b_posl;
+						die_addr[1] <= b_posr;
+						
+						Red <= LREXR;
+						Green <= LREXG;
+						Blue <= LREXB;
+					end
+					
+			else if((b2_pos == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b0011 || bomb2_state == 4'b0100))
+					begin
+						die_addr[9] <= b2_pos;
+						
+						Red <= EXR;
+						Green <= EXG;
+						Blue <= EXB;
+					end
+		  else if((b2_posb == w_type || b2_post == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b011 || bomb2_state == 4'b0100))
+					begin
+						die_addr[7] <= b2_post;
+						die_addr[8] <= b2_posb;
+						
+						Red <= TBEXR;
+						Green <= TBEXG;
+						Blue <= TBEXB;
+					end
+		  else if((b2_posr == w_type || b2_posl == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b0011 || bomb2_state == 4'b0100))
+					begin
+						die_addr[5] <= b2_posl;
+						die_addr[6] <= b2_posr;
+						
+						Red <= LREXR;
+						Green <= LREXG;
+						Blue <= LREXB;
+					end
+		
+		  else if((wall_data == 4'b0010))
 			begin
 				
 				Red <= BrickR;
@@ -852,13 +1161,6 @@ else 															//continue State
             Blue <= BrickB;
 			end
 			
-		 else if((wall_data == 4'b0101) || (wall_data == 4'b0110))
-			begin
-				Red <= EXR;
-            Green <= EXG;
-            Blue <= EXB;
-			end
-		
 		 else if ((user1_on == 1'b1)) 
 		  begin	
 				Red <= user1R;
@@ -867,14 +1169,14 @@ else 															//continue State
 				
 			end 
 		 
-		else if ((user2_on == 1'b1)) 
+		 else if ((user2_on == 1'b1)) 
         begin 
             Red <= user2R;
             Green <= user2G;
             Blue <= user2B;
 
         end 
-		  
+					
 		  else if ((bomb1_on == 1'b1))
 		  begin
 				Red <= bomb1R;
@@ -891,7 +1193,7 @@ else 															//continue State
 		  
 		  end
 		  
-		  else if((wall_data == 2'b11))
+		  else if((wall_data == 4'b0011))
 			begin
 				
 				Red <= SPPUR;
@@ -899,12 +1201,14 @@ else 															//continue State
             Blue <= SPPUB;
 			end
 		
-			else if((wall_data == 3'b100))
+			else if((wall_data == 4'b0100))
 			begin
 				Red <= BOPUR;
             Green <= BOPUG;
             Blue <= BOPUB;
 			end
+			
+			
 		 	
 		  else
         begin 
