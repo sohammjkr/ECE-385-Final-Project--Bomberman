@@ -97,10 +97,10 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 	HexDriver hex_driver5 (lives1, HEX5[6:0]);
 	assign HEX5[7] = 1'b1;
 	
-//	HexDriver hex_driver4 (counter[3:0], HEX4[6:0]);
+//	HexDriver hex_driver4 (ram_datasig, HEX4[6:0]);
 //	assign HEX4[7] = 1'b1;
-//	
-//	HexDriver hex_driver3 (Green[3:0], HEX3[6:0]);
+////	
+//	HexDriver hex_driver3 (ram_addrsig[8:5], HEX3[6:0]);
 //	assign HEX3[7] = 1'b1;
 //	
 //	HexDriver hex_driver1 (bomb1xsig[8:5], HEX1[6:0]);
@@ -132,10 +132,16 @@ logic Reset_h, vssig, blank, sync, VGA_Clk;
 //  Logic Variables
 //=======================================================
 	 
-logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, collide1, collide2;	
+logic p1bomb, p2bomb, bomb1_exist, bomb2_exist, collide1, collide2, speed_pu1, speed_pu2, lives_pu1, lives_pu2;
 
 logic [9:0] user1xsig, user1ysig, bomb1xsig, bomb1ysig, bomb1xsizesig, bomb1ysizesig;
 logic [9:0] user2xsig, user2ysig, bomb2xsig, bomb2ysig, bomb2xsizesig, bomb2ysizesig;
+
+logic [9:0] ram_addrsig;
+
+logic [3:0] ram_datasig;
+
+logic ram_ensig;
 
 logic [4:0] game_statesig;
 logic [3:0] bomb1_statesig, bomb2_statesig;
@@ -205,7 +211,7 @@ state_machine fsm(.Reset(Reset_h),
 					  .p2die(collide2),
 					  .state(game_statesig));
 					  
-vga_controller vgacontrol(.Reset(Reset_h), 
+vga_controller vgacontrol(.Reset(1'b0), 
 								  .Clk(MAX10_CLK1_50), 
 								  .hs(VGA_HS), 
 								  .vs(VGA_VS), 
@@ -236,6 +242,9 @@ color_mapper colormap(.Clk(VGA_Clk),
 							 .DrawX(drawxsig), 
 							 .DrawY(drawysig),
 							 .die_addr(dieaddr),
+							 .ram_addr(ram_addrsig),
+							 .ram_data(ram_datasig),
+							 .ram_en(ram_ensig),
 							 .Red(Red), 
 							 .Green(Green), 
 							 .Blue(Blue));
@@ -243,9 +252,15 @@ color_mapper colormap(.Clk(VGA_Clk),
 
 user1 player1(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
+					  .Clk(VGA_Clk),
 					  .allow(game_statesig),
 					  .keycode(keycode),
 					  .die_addr(dieaddr),
+					  .ram_addr(ram_addrsig),
+					  .ram_data(ram_datasig),
+					  .ram_en(ram_ensig),
+					  .speed_pu(speed_pu1), 
+					  .lives_pu(lives_pu1),
 					  .bomb2X(bomb2xsig),
 					  .bomb2Y(bomb2ysig),
 					  .bomb2XS(bomb2xsizesig),
@@ -259,8 +274,14 @@ user1 player1(.Reset(Reset_h),
 					  
 user2 player2(.Reset(Reset_h), 
 					  .frame_clk(VGA_VS),
+					  .Clk(VGA_Clk),
 					  .allow(game_statesig),
 					  .die_addr(dieaddr),
+					  .ram_addr(ram_addrsig),
+					  .ram_data(ram_datasig),
+					  .ram_en(ram_ensig),
+					  .speed_pu(speed_pu2), 
+					  .lives_pu(lives_pu2),
 					  .keycode(keycode),
 					  .bomb1X(bomb1xsig),
 					  .bomb1Y(bomb1ysig),
@@ -297,6 +318,17 @@ bomb1 player2_bomb(.Reset(Reset_h),
 					  .bombYS(bomb2ysizesig),
 					  .bombX(bomb2xsig),
 					  .bombY(bomb2ysig));
+					  
+speed_powerup power_ups(.Reset(Reset_h), 
+							.frame_clk(VGA_VS),
+							.user1X(user1xsig), 
+							.user1Y(user1ysig), 
+							.user2X(user2xsig), 
+							.user2Y(user2xsig),
+							.speed1_collide(speed_pu1), 
+							.lives1_collide(lives_pu1), 
+							.speed2_collide(speed_pu2), 
+							.lives2_collide(lives_pu2)); 
 					  			  
 
 endmodule 

@@ -4,12 +4,14 @@
 
 module user2(
 
-input logic Reset, frame_clk,
+input logic Reset, frame_clk, Clk, ram_en,
 input logic [7:0] keycode,
 input logic [4:0] allow,
 input logic [9:0] bomb1X, bomb1Y, bomb1XS, bomb1YS,
 input logic [9:0] die_addr [10],
-
+input logic [9:0] ram_addr,
+input logic [3:0] ram_data,
+input logic speed_pu, lives_pu,
 output logic bomb_drop, collide,
 output logic [9:0] userX, userY,
 output logic [2:0] live_count
@@ -66,31 +68,60 @@ assign w_typetr = User_Y_Pos[9:5] * 20 + User_X_Off[9:5];
 assign w_typebl = User_Y_Off[9:5] * 20 + User_X_Pos[9:5];
 
 
-	map checktop(
+map t2l(
 	.address_a(w_typetl),
-	.address_b(w_typetr),
-	.clock(frame_clk),
-	.data_a(1'bX),
-	.data_b(1'bX),
+	.address_b(ram_addr),
+	.clock(Clk),
+	.data_a(0),
+	.data_b(4'b0000),
 	.rden_a(1'b1),
-	.rden_b(1'b1),
-	.wren_a(1'b0),
-	.wren_b(1'b0),
-	.q_a(wall_datatl),
-	.q_b(wall_datatr));
+	.rden_b(1'b0),
+	.wren_a(ram_en),
+	.wren_b(ram_en),
+	.q_a(wall_datatl), 
+	.q_b());
 	
-	map checkbot(
+map b2l(
 	.address_a(w_typebl),
-	.address_b(w_typebr),
-	.clock(frame_clk),
-	.data_a(1'bX),
-	.data_b(1'bX),
+	.address_b(ram_addr),
+	.clock(Clk),
+	.data_a(0),
+	.data_b(4'b0000),
 	.rden_a(1'b1),
-	.rden_b(1'b1),
+	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(1'b0),
-	.q_a(wall_databl),
-	.q_b(wall_databr));
+	.wren_b(ram_en),
+	.q_a(wall_databl), 
+	.q_b());
+		
+		
+map t2r(
+	.address_a(w_typetr),
+	.address_b(ram_addr),
+	.clock(Clk),
+	.data_a(0),
+	.data_b(4'b0000),
+	.rden_a(1'b1),
+	.rden_b(1'b0),
+	.wren_a(1'b0),
+	.wren_b(ram_en),
+	.q_a(wall_datatr), 
+	.q_b());
+		
+map b2r(
+	.address_a(w_typebr),
+	.address_b(ram_addr),
+	.clock(Clk),
+	.data_a(),
+	.data_b(4'b0000),
+	.rden_a(1'b1),
+	.rden_b(1'b0),
+	.wren_a(1'b0),
+	.wren_b(ram_en),
+	.q_a(wall_databr), 
+	.q_b());
+		
+		
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -302,7 +333,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 						death_count <= death_count + 1'b1;
 
 					end
-					else if(death_count == 3'b110)
+					else if(death_count >= 3'b110)
 						begin
 						
 							die_flag <= 1'b1;

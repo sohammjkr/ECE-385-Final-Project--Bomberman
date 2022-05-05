@@ -23,7 +23,13 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 							  input			Clk, blank, Reset,
 							  
 							  output logic [9:0] die_addr [10],
+							  output logic [9:0] ram_addr,
+							  output logic [3:0] ram_data,
+							  output logic ram_en,
                        output logic [7:0]  Red, Green, Blue);
+							  
+							  
+
 							  
   logic user1_on, bomb1_on, user2_on, bomb2_on, p1w_data, p2w_data;
 
@@ -54,7 +60,7 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 	 logic [9:0] w_type, b_pos, b_post, b_posl, b_posr, b_posb, b2_pos, b2_post, b2_posl, b2_posr, b2_posb;
 
     logic [3:0] wall_data, wall_temp, wall_datal, wall_datar, wall_datat, wall_datab, wall_datac;
- 
+	logic write_enb, write_ena;
 	 
 	 int bomb1DistX, bomb1DistY, bomb1Size;
 	 int bomb2DistX, bomb2DistY, bomb2Size;
@@ -70,6 +76,11 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 
 	 assign bomb2DistX = DrawX - bomb2X;
     assign bomb2DistY = DrawY - bomb2Y;
+	 
+	 
+	 assign ram_addr = w_type;
+	 assign ram_data = wall_data;
+	 assign ram_en = write_enb;
  
 	 
 
@@ -97,6 +108,48 @@ module  color_mapper ( input        [9:0] user1X, user1Y, bomb1X, bomb1Y, bomb1X
 	assign b2_posb = (bomb2Y[9:5] * 20 + bomb2X[9:5]) + 20;
 	assign b2_posr = (bomb2Y[9:5] * 20 + bomb2X[9:5]) + 1;
 	assign b2_posl = (bomb2Y[9:5] * 20 + bomb2X[9:5]) - 1;
+	
+	
+//	always_ff @(posedge Clk)
+//		begin
+//			if((wall_data == 4'b0001) )
+//			begin
+//				write_enb <= 1'b0;
+//				write_ena <= 1'b0;
+//			end
+//			
+//			else if(((DrawY - 10'd32) % 10'd64 < 10'd32) && ((DrawX - 10'd32) % 10'd64 < 10'd32) && (DrawX[9:5] > 10'd0 && DrawX[9:5] < 10'd18 && DrawY[9:5] > 10'd0 && DrawY[9:5] < 10'd14))
+//				begin
+//					if((wall_data == 4'b0010) && ((bomb1_state == 4'b0010) || (bomb2_state == 4'b0010)) && (w_type == b_pos || w_type == b_post || w_type == b_posb|| w_type == b_posr|| w_type == b_posl|| w_type == b2_pos|| w_type == b2_post|| w_type == b2_posb|| w_type == b2_posl|| w_type == b2_posr))
+//						begin	
+//							write_ena <= 1'b0;
+//							write_enb <= 1'b1;
+//						end
+//				end
+//			
+//			end 
+//			
+	
+always_comb
+		begin
+			if((DrawX[9:5] > 10'd0 && DrawX[9:5] < 10'd18 && DrawY[9:5] > 10'd0) && (wall_data == 4'b0010) && ((bomb1_state == 4'b0010) || (bomb2_state == 4'b0010)) && (w_type == b_pos || w_type == b_post || w_type == b_posb|| w_type == b_posr|| w_type == b_posl|| w_type == b2_pos|| w_type == b2_post|| w_type == b2_posb|| w_type == b2_posl|| w_type == b2_posr))
+				write_enb = 1'b1;
+			else
+				write_enb = 1'b0;
+		end
+			
+always_comb
+		begin
+			if(Reset)
+				begin
+					write_ena = 1'b1;
+				end
+			else
+				begin
+					write_ena = 1'b0;
+				end
+		end
+		
 	
 	assign wall_addr = DrawX[4:0] + (32 * DrawY[4:0]);
 	
@@ -134,30 +187,33 @@ bomb_ram sprite_bomb2(.read_address(bomb2_addr),
 									.Clk(Clk),
 									.data_Out(bomb2_data));	
 
+									
+									
+			
 map background(
 	.address_a(w_type),
 	.address_b(w_type),
 	.clock(Clk),
+	.data_a(wall_temp),
+	.data_b(4'b0000),
+	.rden_a(1'b0),
+	.rden_b(1'b1),
+	.wren_a(write_ena),
+	.wren_b(write_enb),
+	.q_a(),
+	.q_b(wall_data));
+	
+map main(
+	.address_a(w_type),
+	.address_b(),
+	.clock(Clk),
 	.data_a(1'bX),
 	.data_b(1'bX),
 	.rden_a(1'b1),
-	.rden_b(1'b1),
+	.rden_b(1'b0),
 	.wren_a(1'b0),
 	.wren_b(1'b0),
 	.q_a(wall_temp),
-	.q_b(wall_data));
-	
-map write(
-	.address_a(explode_addr[0]),
-	.address_b(explode_addr[1]),
-	.clock(Clk),
-	.data_a(explode_data[0]),
-	.data_b(explode_data[1]),
-	.rden_a(1'b0),
-	.rden_b(1'b0),
-	.wren_a(1'b1),
-	.wren_b(1'b1),
-	.q_a(),
 	.q_b());
 	
 wall_ram wall_sprite(.read_address(wall_addr),
@@ -229,7 +285,7 @@ always_ff @(posedge Clk)
 			end
 			
 			
-	else if((b2_pos == w_type || b_pos == w_type)  && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
+	else if((wall_data != 4'b0001) && (b2_pos == w_type || b_pos == w_type)  && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
 		begin
 			
 		case(csmall_color)
@@ -278,7 +334,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-	else if((b2_pos == w_type || b_pos == w_type) && (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
+	else if((wall_data != 4'b0001) && (b2_pos == w_type || b_pos == w_type) && (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
 		begin
 			
 		case(cbig_color)
@@ -327,7 +383,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-		else if((b2_posl == w_type || b2_posr == w_type || b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
+		else if((wall_data != 4'b0001) && (b2_posl == w_type || b2_posr == w_type || b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
 		begin
 			
 		case(lrsmall_color)
@@ -376,7 +432,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-		else if((b2_posl == w_type || b2_posr == w_type) || (b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
+		else if((wall_data != 4'b0001) && (b2_posl == w_type || b2_posr == w_type) || (b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
 		begin
 			
 		case(lrbig_color)
@@ -425,7 +481,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-	else if((b2_posb == w_type || b2_post == w_type || b_posb == w_type || b_post == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
+	else if((wall_data != 4'b0001) && (b2_posb == w_type || b2_post == w_type || b_posb == w_type || b_post == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0100 || bomb2_state == 4'b0010 || bomb2_state == 4'b0100))
 		begin
 			
 		case(tbsmall_color)
@@ -474,7 +530,7 @@ always_ff @(posedge Clk)
 		endcase
 			end
 			
-	else if((b2_post == w_type || b2_posb == w_type || b_posb == w_type || b_post == w_type) &&  (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
+	else if((wall_data != 4'b0001) && (b2_post == w_type || b2_posb == w_type || b_posb == w_type || b_post == w_type) &&  (bomb1_state == 4'b0011 || bomb2_state == 4'b0011))
 		begin
 			
 		case(tbbig_color)
@@ -996,12 +1052,8 @@ end
 				Green <= startG;
 				Blue <= startB;
 		
-		
-		
-		
 		end
     else
-	 
 		begin
 		
 	  if(blank && DrawX > 1'b1)
@@ -1107,35 +1159,36 @@ end
 						Blue <= 8'h00;
 					end
 			end
-			
-		
+
 else 															//continue State
 	begin
 			
 	
 		
 		
-		if((wall_data == 4'b0101) || (wall_data == 4'b0110))
-			begin
-				Red <= EXR;
-            Green <= EXG;
-            Blue <= EXB;
-			end
-			
-		else if (wall_data == 4'b0111 || wall_data == 4'b1000 || (wall_datar == 4'b0111) || wall_datal == 4'b0111 || (wall_datar == 4'b1000) || wall_datal == 4'b1000)
-			begin
-				Red <= LREXR;
-            Green <= LREXG;
-            Blue <= LREXB;
-			end
-			
-		else if (wall_data == 4'b1001 || wall_data == 4'b1010 || (wall_datat == 4'b1001) || wall_datab == 4'b1001 || (wall_datat == 4'b1010) || wall_datab == 4'b1010)
-			begin
-				Red <= TBEXR;
-            Green <= TBEXG;
-            Blue <= TBEXB;
-			end
-		else if((wall_data == 4'b0001))
+//		if((wall_data == 4'b0101) || (wall_data == 4'b0110))
+//			begin
+//				Red <= EXR;
+//            Green <= EXG;
+//            Blue <= EXB;
+//			end
+//			
+//		else if (wall_data == 4'b0111 || wall_data == 4'b1000 || (wall_datar == 4'b0111) || wall_datal == 4'b0111 || (wall_datar == 4'b1000) || wall_datal == 4'b1000)
+//			begin
+//				Red <= LREXR;
+//            Green <= LREXG;
+//            Blue <= LREXB;
+//			end
+//			
+//		else if (wall_data == 4'b1001 || wall_data == 4'b1010 || (wall_datat == 4'b1001) || wall_datab == 4'b1001 || (wall_datat == 4'b1010) || wall_datab == 4'b1010)
+//			begin
+//				Red <= TBEXR;
+//            Green <= TBEXG;
+//            Blue <= TBEXB;
+//			end
+		
+		
+		if((wall_data == 4'b0001))
 			begin
 				
 				Red <= WallR;
@@ -1143,15 +1196,16 @@ else 															//continue State
             Blue <= WallB;
 			end
 		
+		
 		 
-		  else if(( b_pos == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0011 || bomb1_state == 4'b0100))
+		  else if((b_pos == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0011 || bomb1_state == 4'b0100) && (wall_data == 4'b0010 || wall_data == 4'b0000))
 					begin
 						die_addr[4] <= b_pos;
 						Red <= EXR;
 						Green <= EXG;
 						Blue <= EXB;
 					end
-		  else if((b_posb == w_type || b_post == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b011 || bomb1_state == 4'b0100))
+		  else if((b_posb == w_type || b_post == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b011 || bomb1_state == 4'b0100)&& (wall_data == 4'b0010 || wall_data == 4'b0000))
 					begin
 						die_addr[3] <= b_posb;
 						die_addr[2] <= b_post;
@@ -1160,7 +1214,7 @@ else 															//continue State
 						Green <= TBEXG;
 						Blue <= TBEXB;
 					end
-		  else if((b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0011 || bomb1_state == 4'b0100))
+		  else if((b_posl == w_type || b_posr == w_type) && (bomb1_state == 4'b0010 || bomb1_state == 4'b0011 || bomb1_state == 4'b0100)&& (wall_data == 4'b0010 || wall_data == 4'b0000))
 					begin
 						die_addr[0] <= b_posl;
 						die_addr[1] <= b_posr;
@@ -1170,7 +1224,7 @@ else 															//continue State
 						Blue <= LREXB;
 					end
 					
-			else if((b2_pos == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b0011 || bomb2_state == 4'b0100))
+			else if((b2_pos == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b0011 || bomb2_state == 4'b0100)&& (wall_data == 4'b0010 || wall_data == 4'b0000))
 					begin
 						die_addr[9] <= b2_pos;
 						
@@ -1178,7 +1232,7 @@ else 															//continue State
 						Green <= EXG;
 						Blue <= EXB;
 					end
-		  else if((b2_posb == w_type || b2_post == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b011 || bomb2_state == 4'b0100))
+		  else if((b2_posb == w_type || b2_post == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b011 || bomb2_state == 4'b0100)&& (wall_data == 4'b0010 || wall_data == 4'b0000))
 					begin
 						die_addr[7] <= b2_post;
 						die_addr[8] <= b2_posb;
@@ -1187,7 +1241,7 @@ else 															//continue State
 						Green <= TBEXG;
 						Blue <= TBEXB;
 					end
-		  else if((b2_posr == w_type || b2_posl == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b0011 || bomb2_state == 4'b0100))
+		  else if((b2_posr == w_type || b2_posl == w_type) && (bomb2_state == 4'b0010 || bomb2_state == 4'b0011 || bomb2_state == 4'b0100)&& (wall_data != 4'b0001))
 					begin
 						die_addr[5] <= b2_posl;
 						die_addr[6] <= b2_posr;
