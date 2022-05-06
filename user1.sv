@@ -4,10 +4,10 @@
 
 module user1(
 
-input logic Reset, frame_clk, Clk, ram_en,
+input logic Reset, frame_clk, Clk, ram_en, Max,
 input logic [7:0] keycode,
 input logic [4:0] allow,
-input logic [9:0] bomb2X, bomb2Y, bomb2XS, bomb2YS,
+input logic [9:0] bomb2X, bomb2Y, bomb2XS, bomb2YS, user2X, user2Y,
 input logic [9:0] die_addr [10],
 input logic [9:0] ram_addr,
 input logic [3:0] ram_data,
@@ -23,11 +23,13 @@ logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, U
 
 logic [9:0] BombX, BombY, BombXS, BombYS, w_typetl, w_typetr, w_typebl, w_typebr;
 
-logic [3:0] wall_datatl, wall_databl, wall_datatr, wall_databr, wall_data;
+logic [3:0] wall_datatl, wall_databl, wall_datatr, wall_databr, wall_data, write_data;
 
-logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, die_flag;
+logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, die_flag, write_en, port_flag;
 
 logic [2:0] death_count;
+
+logic [4:0] port_count;
 
 
 
@@ -66,11 +68,11 @@ map tl(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(0),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(ram_en),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_datatl), 
 	.q_b());
 	
@@ -79,11 +81,11 @@ map bl(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(0),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_databl), 
 	.q_b());
 		
@@ -93,11 +95,11 @@ map tr(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(0),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_datatr), 
 	.q_b());
 		
@@ -106,42 +108,38 @@ map br(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_databr), 
 	.q_b());
+	
+
+
+always_comb 
+		begin
+			if(Reset)
+				begin
+					write_data = ram_data;
+					write_en = 1'b1;
+				end
+			else
+				begin
+					write_data = 4'b0000;
+					write_en = ram_en;
+				end
+				
+		end
 		
 		
-//	
-//map checkleft(
-//	.address_a(w_typetl),
-//	.address_b(w_typetr),
-//	.clock(frame_clk),
-//	.data_a(1'bX),
-//	.data_b(1'bX),
-//	.rden_a(1'b1),
-//	.rden_b(1'b1),
-//	.wren_a(1'b0),
-//	.wren_b(1'b0),
-//	.q_a(wall_datatl), 
-//	.q_b(wall_datatr));
-//	
-//
-//	map checkright(
-//	.address_a(w_typebl),
-//	.address_b(w_typebr),
-//	.clock(frame_clk),
-//	.data_a(1'bX),
-//	.data_b(1'bX),
-//	.rden_a(1'b1),
-//	.rden_b(1'b1),
-//	.wren_a(1'b0),
-//	.wren_b(1'b0),
-//	.q_a(wall_databl),
-//	.q_b(wall_databr));
+	always_ff @(posedge Max)
+		begin
+			
+				port_count <= port_count + 1;
+				
+		end
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -350,21 +348,23 @@ always_ff @(posedge Reset or posedge frame_clk)
 					end
 					
 					
-				else if(wall_datatl == 4'b0011 && wall_datatr == 4'b0011 && wall_databl == 4'b0011 && wall_databr == 4'b0011)
+				else if((wall_datatl == 4'b0011 && wall_datatr == 4'b0011) || (wall_datatl == 4'b0011 && wall_databl == 4'b0011) || (wall_databr == 4'b0011 && wall_datatr == 4'b0011) || (wall_databl == 4'b0011 && wall_databr == 4'b0011))
 					begin
-						speedX <= speedX;
-						speedY <= speedY;
+						
+						port_flag <= 1'b1;
+					
 					end
+					
 //				else if(~speed_pu) 
 //					begin
 //						speedX <= speedX;
 //						speedY <= speedY;
 //					end
 //					
-				else if(wall_datatl == 4'b0100 && wall_datatr == 4'b0100 && wall_databl == 4'b0100 && wall_databr == 4'b0100)
+				else if((wall_datatl == 4'b0100 && wall_datatr == 4'b0100) || (wall_datatl == 4'b0100 && wall_databl == 4'b0100) || (wall_databr == 4'b0100 && wall_datatr == 4'b0100) || (wall_databl == 4'b0100 && wall_databr == 4'b0100))
 					begin
-						max_lives <= max_lives + 2;
-						
+							max_lives <= max_lives + 2;
+							
 					end
 //				else if(~lives_pu)
 //					begin
@@ -373,7 +373,8 @@ always_ff @(posedge Reset or posedge frame_clk)
 							
 				else 
 					begin
-
+					
+					  port_flag <= 1'b0;
 					  bomb_flag <= 1'b0;
 					  bomb_drop <= 1'b0;
 					  wall_T <= 1'b0;
@@ -440,6 +441,25 @@ always_ff @(posedge Reset or posedge frame_clk)
 						die_flag <= 1'b0;
 						max_lives <= max_lives;
 
+					end
+					
+				else if(port_flag)
+					begin
+						if(port_count[0] && ((user2Y[7:3] * 20 + user2X[7:3]) > 10'd20) && ((user2Y[7:3] * 20 + user2X[7:3]) <= 10'd277))
+							begin
+								User_X_Pos <= user2X;								
+								User_Y_Pos <= user2Y;	
+								User_X_Motion <= User_X_Step - 1;
+								User_Y_Motion <= User_Y_Step - 1;
+							end
+						else
+							begin
+								User_Y_Pos <= User_Y_Min + 3;
+								User_X_Pos <= User_X_Min + 7;
+								User_X_Motion <= User_X_Step - 1;
+								User_Y_Motion <= User_Y_Step - 1;
+							end
+						
 					end
 					
 				else if(death_count >= max_lives)

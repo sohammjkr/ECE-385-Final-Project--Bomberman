@@ -7,7 +7,7 @@ module user2(
 input logic Reset, frame_clk, Clk, ram_en,
 input logic [7:0] keycode,
 input logic [4:0] allow,
-input logic [9:0] bomb1X, bomb1Y, bomb1XS, bomb1YS,
+input logic [9:0] bomb1X, bomb1Y, bomb1XS, bomb1YS, user1X, user1Y,
 input logic [9:0] die_addr [10],
 input logic [9:0] ram_addr,
 input logic [3:0] ram_data,
@@ -22,11 +22,15 @@ logic [9:0] User_X_Pos, User_X_Motion, User_Y_Pos, User_Y_Motion, User_X_Size, U
 
 logic [9:0] BombX, BombY, BombXS, BombYS, w_typetl, w_typetr, w_typebl, w_typebr;
 
-logic [3:0] wall_datatl, wall_databl, wall_datatr, wall_databr;
+logic [3:0] wall_datatl, wall_databl, wall_datatr, wall_databr, write_data;
 
-logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, die_flag;
+logic	bomb_flag, wall_L, wall_R, wall_T, wall_B, die_flag, write_en, port_flag;
 
 logic [2:0] death_count;
+
+logic [3:0] max_lives;
+
+logic [4:0] port_count;
 
 	assign BombX = bomb1X;
 	assign BombY = bomb1Y;
@@ -73,11 +77,11 @@ map t2l(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(0),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(ram_en),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_datatl), 
 	.q_b());
 	
@@ -86,11 +90,11 @@ map b2l(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(0),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_databl), 
 	.q_b());
 		
@@ -100,11 +104,11 @@ map t2r(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(0),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_datatr), 
 	.q_b());
 		
@@ -113,15 +117,38 @@ map b2r(
 	.address_b(ram_addr),
 	.clock(Clk),
 	.data_a(),
-	.data_b(4'b0000),
+	.data_b(write_data),
 	.rden_a(1'b1),
 	.rden_b(1'b0),
 	.wren_a(1'b0),
-	.wren_b(ram_en),
+	.wren_b(write_en),
 	.q_a(wall_databr), 
 	.q_b());
 		
+	always_comb 
+		begin
+			if(Reset)
+				begin
+					write_data = ram_data;
+					write_en = 1'b1;
+				end
+			else
+				begin
+					write_data = 4'b0000;
+					write_en = ram_en;
+				end
+				
+		end
 		
+		
+always_ff @(posedge Clk)
+	begin
+		
+			port_count <= port_count + 1;
+			
+	end
+	
+	
 	
 always_ff @(posedge Reset or posedge frame_clk) 
 	begin	
@@ -140,6 +167,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 				bomb_flag <= 1'b0;
 				die_flag <= 1'b0;
 				death_count <= 3'b000;
+				max_lives <= 4'b0110;
 		  end
 		  
 		  
@@ -205,25 +233,25 @@ always_ff @(posedge Reset or posedge frame_clk)
 					  
 					//Wall Check	
 			
-//				else if (((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
-//					begin
-//						wall_L <= 1'b1;
-//					end
-//					
-//				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
-//					begin
-//						wall_B <= 1'b1;
-//					end
-//					
-//				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
-//					begin
-//						wall_T <= 1'b1;
-//					end
-//					
-//				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
-//					begin
-//						wall_R <= 1'b1;
-//					end
+				else if (((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+					begin
+						wall_L <= 1'b1;
+					end
+					
+				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+					begin
+						wall_B <= 1'b1;
+					end
+					
+				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64) > 10'd32)) && (User_Y_Motion != 1'b0))
+					begin
+						wall_T <= 1'b1;
+					end
+					
+				else if (((((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && ~((((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos - 10'd32) % 10'd64 > 10'd32)) || (((User_X_Pos + User_X_Size - 10'd32) % 10'd64 > 10'd32) && ((User_Y_Pos + User_Y_Size - 10'd32) % 10'd64) > 10'd32)) && (User_X_Motion != 1'b0))
+					begin
+						wall_R <= 1'b1;
+					end
 					
 				else if(wall_databl == 3'b010 || wall_databl == 3'b001)		//UserX and UserY hitting Bricks
 					begin
@@ -271,23 +299,41 @@ always_ff @(posedge Reset or posedge frame_clk)
 								wall_B <= 1'b1;
 							end
 					end
+					
+				
+				else if((wall_datatl == 4'b0011 && wall_datatr == 4'b0011) || (wall_datatl == 4'b0011 && wall_databl == 4'b0011) || (wall_databr == 4'b0011 && wall_datatr == 4'b0011) || (wall_databl == 4'b0011 && wall_databr == 4'b0011))
+					begin
+						
+						port_flag <= 1'b1;
+					
+					end
+				
+					
+				else if((wall_datatl == 4'b0100 && wall_datatr == 4'b0100) || (wall_datatl == 4'b0100 && wall_databl == 4'b0100) || (wall_databr == 4'b0100 && wall_datatr == 4'b0100) || (wall_databl == 4'b0100 && wall_databr == 4'b0100))
+					begin
+							max_lives <= max_lives + 2;
+							
+					end
 					  
 				else 
 					begin
 					  bomb_flag <= 1'b0;
 					  bomb_drop <= 1'b0;
+					  port_flag <= 1'b0;
 					  wall_T <= 1'b0;
 					  wall_B <= 1'b0;
 					  wall_R <= 1'b0;
 					  wall_L <= 1'b0;
 					  User_Y_Motion <= User_Y_Motion;  // User is somewhere in the middle, don't bounce, just keep moving
 					  die_flag <= 1'b0;
+					  max_lives <= max_lives;
 				 case (keycode)
 					8'h50 : begin
 								User_X_Motion <= -1;//A
 								User_Y_Motion<= 0;
 								bomb_drop <= 1'b0;
 								die_flag <= 1'b0;
+								max_lives <= max_lives;
 							  end
 					        
 					8'h4F : begin
@@ -296,6 +342,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 							  User_Y_Motion <= 0;
 							  bomb_drop <= 1'b0;
 							  die_flag <= 1'b0;
+							  max_lives <= max_lives;
 							  end
 
 							  
@@ -305,6 +352,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 							  User_X_Motion <= 0;
 							  bomb_drop <= 1'b0;
 							  die_flag <= 1'b0;
+							  max_lives <= max_lives;
 							 end
 							  
 					8'h52 : begin
@@ -312,11 +360,13 @@ always_ff @(posedge Reset or posedge frame_clk)
 							  User_X_Motion <= 0;
 							  bomb_drop <= 1'b0;
 							  die_flag <= 1'b0;
+							  max_lives <= max_lives;
 							 end	  
 							 
 					8'h13 : begin
 								bomb_drop <= 1'b1;
 								die_flag <= 1'b0;
+								max_lives <= max_lives;
 							  end
 					default: ;
 			   endcase
@@ -331,9 +381,29 @@ always_ff @(posedge Reset or posedge frame_clk)
 						User_Y_Motion <= User_Y_Step - 1;
 						die_flag <= 1'b0;
 						death_count <= death_count + 1'b1;
-
+						max_lives <= max_lives;
 					end
-					else if(death_count >= 3'b110)
+					
+				else if(port_flag)
+					begin
+						if(port_count[0] && ((user1Y[7:3] * 20 + user1X[7:3]) > 10'd20) && ((user1Y[7:3] * 20 + user1X[7:3]) <= 10'd277))
+							begin
+								User_X_Pos <= user1X;								
+								User_Y_Pos <= user1Y;	
+								User_X_Motion <= User_X_Step - 1;
+								User_Y_Motion <= User_Y_Step - 1;
+							end
+						else
+							begin
+								User_Y_Pos <= User_Y_Max - 28;
+								User_X_Pos <= User_X_Max - 28;
+								User_X_Motion <= User_X_Step - 1;
+								User_Y_Motion <= User_Y_Step - 1;
+							end
+						
+					end
+					
+					else if(death_count >= max_lives)
 						begin
 						
 							die_flag <= 1'b1;
@@ -382,7 +452,7 @@ always_ff @(posedge Reset or posedge frame_clk)
 		
 	assign userY = User_Y_Pos;
 	assign userX = User_X_Pos;
-	assign live_count = (3'b110 - death_count) / 2;
+	assign live_count = (max_lives - death_count) / 2;
 	assign collide = die_flag;
 
 
